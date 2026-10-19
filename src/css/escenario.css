@@ -334,3 +334,27 @@
 .esc-revision li { display: flex; flex-direction: column; } .esc-revision li small { opacity: .85; }
 .esc-revision .bien span { color: #7dff9b; } .esc-revision .mal span { color: #ff9b9b; }
 .rueda-detalle { position: absolute; top: 9%; left: 50%; transform: translateX(-50%); max-width: 62%; padding: .5em 1.1em; font-size: 1.2em; font-weight: 700; text-align: center; z-index: 3; animation: aparece .3s; }
+
+/* Móvil en vertical: el 16/10 de escritorio deja el juego diminuto; se usa un lienzo más alto. */
+@media (max-width: 700px) and (orientation: portrait) {
+  .escenario { aspect-ratio: 3 / 4; font-size: calc(var(--e-escala, 1) * clamp(13px, 4.1cqw, 22px)); }
+  .esc-juego { padding: .8em .8em 3.8em; }
+  .esc-btn { width: 2.6em; height: 2.6em; }
+  /* Sopa: lista de palabras arriba y cuadrícula debajo (en horizontal no cabrían juntas) */
+  .sopa { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: .6em; justify-items: center; align-content: center; }
+  .sopa-lista { order: -1; display: flex; flex-wrap: wrap; justify-content: center; gap: .1em .9em; font-size: .85em; }
+  .sopa-grid { height: auto; width: min(100%, 62cqh); font-size: calc(min(92cqw, 60cqh) / var(--n) * .5); }
+  .ran-b { padding: .5em .8em; }
+  /* Crucigrama: tablero arriba y pistas debajo, con scroll */
+  .cruci { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: .6em; font-size: .8em; }
+  .cruci-grid { justify-self: center; align-self: start; max-width: none; height: auto; width: min(100%, calc(48cqh * var(--w) / var(--h))); font-size: calc(min(88cqw, 48cqh * var(--w) / var(--h)) / var(--w) * .5); }
+  .cruci-pistas { font-size: 1.05em; }
+}
+
+/* Celular en horizontal: el juego ocupa toda la altura visible y se oculta la barra inferior. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .escenario { aspect-ratio: auto; height: calc(100svh - 12px); }
+  .bi { display: none !important; }
+  body { padding-bottom: 0 !important; }
+  .cab { position: static !important; }
+}

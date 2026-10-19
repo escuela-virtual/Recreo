@@ -63,7 +63,37 @@ export function cabecera() {
     marca(),
     el('span', { class: 'lema', text: 'Juega, aprende y repite' }),
     el('span', { class: 'esp' }),
-    el('nav', {}, [...enlaces, controlTema(), controlCuenta(), el('a', { class: 'btn', text: 'Crear actividad', attrs: { href: '#/crear' } })])
+    el('nav', {}, enlaces),
+    el('div', { class: 'cab-acc' }, [controlTema(), controlCuenta()]),
+    el('a', { class: 'btn cab-crear', text: 'Crear actividad', attrs: { href: '#/crear' } })
+  ]);
+}
+
+// Barra inferior (solo móvil, el CSS la oculta en pantallas grandes): accesos principales y "+" para crear.
+const ico = (d) => `<svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+const ICO = {
+  inicio: '<path d="M3 11l9-8 9 8v10a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
+  comunidad: '<circle cx="9" cy="8" r="3"/><path d="M3 20c0-3.3 2.7-6 6-6s6 2.7 6 6"/><circle cx="17" cy="9" r="2.5"/><path d="M17 14c2.8 0 5 2.2 5 5"/>',
+  mis: '<rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/>',
+  funciones: '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.5l-5.4 3 1.2-6L3.3 9.3l6.1-.7z"/>',
+  entrar: '<path d="M15 4h4a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1h-4M10 8l-4 4 4 4M6 12h10"/>',
+  mas: '<path d="M4 7h16M4 12h16M4 17h16"/>',
+  crear: '<path d="M12 5v14M5 12h14"/>'
+};
+function barraInferior() {
+  const { ruta } = actual();
+  const con = !hayNube || usuarioActual();
+  const item = (r, t, i) => el('a', { class: 'bi-item' + (ruta === r ? ' act' : ''), attrs: { href: '#' + r }, html: ico(ICO[i]) + `<span>${t}</span>` });
+  const extra = [['/funciones', 'Funciones'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados']];
+  const hoja = el('div', { class: 'bi-hoja', attrs: { hidden: true } }, extra.map(([r, t]) => el('a', { class: ruta === r ? 'act' : '', text: t, attrs: { href: '#' + r } })));
+  const mas = el('button', { class: 'bi-item' + (extra.some(([r]) => r === ruta) ? ' act' : ''), attrs: { type: 'button', 'aria-label': 'Más opciones' }, html: ico(ICO.mas) + '<span>Más</span>', on: { click: (e) => { e.stopPropagation(); hoja.hidden = !hoja.hidden; } } });
+  const cerrar = () => { if (!hoja.isConnected) document.removeEventListener('click', cerrar); else hoja.hidden = true; };
+  document.addEventListener('click', cerrar);
+  return el('nav', { class: 'bi', attrs: { 'aria-label': 'Navegación principal' } }, [
+    item('/', 'Inicio', 'inicio'), item('/comunidad', 'Comunidad', 'comunidad'),
+    el('a', { class: 'bi-crear', attrs: { href: '#/crear', 'aria-label': 'Crear actividad' }, html: ico(ICO.crear) }),
+    con ? item('/mis', 'Actividades', 'mis') : item('/funciones', 'Funciones', 'funciones'),
+    con ? mas : item('/entrar', 'Entrar', 'entrar'), hoja
   ]);
 }
 
@@ -78,6 +108,6 @@ export function pie() {
 // Envuelve una vista con cabecera y pie; devuelve el contenedor de contenido.
 export function pagina(raiz, { ancho = true } = {}) {
   const main = el('main', { class: ancho ? 'contenedor' : '' });
-  raiz.append(cabecera(), main, pie());
+  raiz.append(cabecera(), main, pie(), barraInferior());
   return main;
 }

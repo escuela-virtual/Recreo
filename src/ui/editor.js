@@ -91,8 +91,8 @@ const EDITORES = {
     host.append(el('div', { class: 'ed-cab' }, [el('span'), el('b', { text: cabPares[0] }), el('b', { text: cabPares[1] }), el('span')]));
     c.forEach((p, i) => host.append(el('div', { class: 'ed-fila ed-par' }, [
       el('span', { class: 'ed-n', text: String(i + 1) }),
-      el('div', { class: 'ed-linea' }, [el('input', { attrs: { type: 'text' }, value: p.a, on: { input: (e) => { p.a = e.target.value; } } }), botonAudio(p, 'audA'), botonImagen(p, 'imgA')]),
-      el('div', { class: 'ed-linea' }, [el('input', { attrs: { type: 'text' }, value: p.b, on: { input: (e) => { p.b = e.target.value; } } }), botonAudio(p, 'audB'), botonImagen(p, 'imgB')]),
+      el('div', { class: 'ed-linea' }, [el('input', { attrs: { type: 'text', placeholder: cabPares[0] }, value: p.a, on: { input: (e) => { p.a = e.target.value; } } }), botonAudio(p, 'audA'), botonImagen(p, 'imgA')]),
+      el('div', { class: 'ed-linea' }, [el('input', { attrs: { type: 'text', placeholder: cabPares[1] }, value: p.b, on: { input: (e) => { p.b = e.target.value; } } }), botonAudio(p, 'audB'), botonImagen(p, 'imgB')]),
       filaAcciones(c, i, repintar)
     ])));
   },
