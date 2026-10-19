@@ -7,7 +7,8 @@ import { COLORES, colorActual, temaActual, alternarTema, fijarColor, marcaSvg } 
 import { hayNube, usuarioActual, alCambiarUsuario, salir, esAdmin } from '../core/nube.js';
 import { ir } from '../core/router.js';
 
-const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/mis', 'Mis actividades'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados']];
+// El tercer valor marca las pestañas que solo se ven con sesión iniciada (si la app no tiene cuentas, se ven todas).
+const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/mis', 'Mis actividades', true], ['/listas', 'Listas', true], ['/resultados', 'Mis resultados', true]];
 
 const marca = () => el('a', { class: 'logo', attrs: { href: '#/' }, html: marcaSvg() + `<span>${NOMBRE}</span>` });
 
@@ -57,7 +58,7 @@ function controlCuenta() {
 
 export function cabecera() {
   const { ruta } = actual();
-  const enlaces = NAV.map(([r, t]) => el('a', { class: ruta === r ? 'act' : '', text: t, attrs: { href: '#' + r } }));
+  const enlaces = NAV.filter(([, , privada]) => !privada || !hayNube || usuarioActual()).map(([r, t]) => el('a', { class: ruta === r ? 'act' : '', text: t, attrs: { href: '#' + r } }));
   return el('header', { class: 'cab' }, [
     marca(),
     el('span', { class: 'lema', text: 'Juega, aprende y repite' }),
