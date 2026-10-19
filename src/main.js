@@ -6,7 +6,8 @@ import './css/escenario.css';
 import './css/paginas.css';
 import { ruta, iniciarRouter } from './core/router.js';
 import { aplicarTema } from './core/tema.js';
-import { iniciarNube, alCambiarUsuario, rutaDeVuelta } from './core/nube.js';
+import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia } from './core/nube.js';
+import { vistaAdmin } from './ui/admin.js';
 import { sincronizar } from './core/almacen.js';
 import { vistaEntrar } from './ui/entrar.js';
 import { ir } from './core/router.js';
@@ -33,10 +34,11 @@ ruta('/resultados', vistaResultados);
 ruta('/funciones', vistaFunciones);
 ruta('/listas', vistaListas);
 ruta('/entrar', vistaEntrar);
+ruta('/admin', vistaAdmin);
 
 // Sin top-level await (el objetivo de compilación de Vite no lo admite).
 (async () => {
-  try { await iniciarNube(); } catch (e) { console.warn('Nube no disponible:', e); }
+  try { await iniciarNube(); unirPresencia(); } catch (e) { console.warn('Nube no disponible:', e); }
   alCambiarUsuario((u, evento) => {
     if (u) sincronizar();
     if (evento === 'SIGNED_IN') { const r = rutaDeVuelta(); if (r) ir(r); } // tras volver de Google

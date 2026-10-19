@@ -66,6 +66,36 @@ export function rutaDeVuelta() {
   try { const r = sessionStorage.getItem('recreo:volver'); sessionStorage.removeItem('recreo:volver'); return r; } catch (_) { return null; }
 }
 
+// ---- Panel de administración ----
+// Solo responde a quien esté en la tabla `admins`; las funciones SQL lo comprueban en el servidor.
+let admin = null;
+export async function esAdmin() {
+  if (!supa || !usuario) return false;
+  if (admin && admin.id === usuario.id) return admin.si;
+  const { data } = await supa.rpc('es_admin');
+  admin = { id: usuario.id, si: data === true };
+  return admin.si;
+}
+export async function resumenAdmin() {
+  const { data, error } = await supa.rpc('admin_resumen');
+  if (error) throw error;
+  return data;
+}
+
+// Quién está conectado ahora: presencia en tiempo real (anónimos incluidos, solo se cuentan).
+let canal = null;
+const datosPresencia = () => ({ correo: usuario ? usuario.email : null, desde: Date.now() });
+const oyentesPresencia = new Set();
+export const conectadosAhora = () => (canal ? Object.values(canal.presenceState()).map((v) => v[0]) : []);
+export const alCambiarPresencia = (fn) => { oyentesPresencia.add(fn); return () => oyentesPresencia.delete(fn); };
+export function unirPresencia() {
+  if (!supa || canal) return;
+  canal = supa.channel('en-linea', { config: { presence: { key: crypto.randomUUID() } } });
+  canal.on('presence', { event: 'sync' }, () => oyentesPresencia.forEach((f) => f(conectadosAhora())));
+  canal.subscribe((estado) => { if (estado === 'SUBSCRIBED') canal.track(datosPresencia()); });
+  alCambiarUsuario(() => canal.track(datosPresencia()));
+}
+
 // ---- Actividades en la nube ----
 const sinHistorial = (a) => { const { versiones, ...resto } = a; return resto; }; // el historial se queda en el dispositivo (pesa mucho)
 const fila = (a) => ({ user_id: usuario.id, id: a.id, titulo: a.titulo, datos: sinHistorial(a), modificado: a.modificado || Date.now(), papelera: a.papelera || null });

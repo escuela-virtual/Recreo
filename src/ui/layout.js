@@ -4,7 +4,7 @@ import { el } from '../core/util.js';
 import { actual } from '../core/router.js';
 import { NOMBRE } from '../nombre.js';
 import { COLORES, colorActual, temaActual, alternarTema, fijarColor, marcaSvg } from '../core/tema.js';
-import { hayNube, usuarioActual, alCambiarUsuario, salir } from '../core/nube.js';
+import { hayNube, usuarioActual, alCambiarUsuario, salir, esAdmin } from '../core/nube.js';
 import { ir } from '../core/router.js';
 
 const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/mis', 'Mis actividades'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados']];
@@ -38,8 +38,11 @@ function controlCuenta() {
     if (!u) { caja.append(el('a', { class: 'btn btn-claro btn-mini', text: 'Entrar', attrs: { href: '#/entrar' } })); return; }
     const nombre = (u.user_metadata && (u.user_metadata.full_name || u.user_metadata.name)) || u.email;
     const foto = u.user_metadata && (u.user_metadata.avatar_url || u.user_metadata.picture);
+    const enlaceAdmin = el('a', { class: 'btn btn-mini', text: 'Panel de administración', attrs: { href: '#/admin', hidden: true } });
+    esAdmin().then((si) => { enlaceAdmin.hidden = !si; });
     const menu = el('div', { class: 'paleta cuenta-menu', attrs: { hidden: true } }, [
       el('div', { class: 'cuenta-dato' }, [el('b', { text: nombre }), el('small', { text: u.email })]),
+      enlaceAdmin,
       el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Cerrar sesión', on: { click: async () => { await salir(); ir('/'); } } })
     ]);
     const bot = el('button', { class: 'ico-btn avatar', attrs: { type: 'button', title: nombre, 'aria-label': 'Mi cuenta' }, on: { click: (e) => { e.stopPropagation(); menu.hidden = !menu.hidden; } } },

@@ -60,7 +60,7 @@ export async function vistaEntrar(raiz) {
       el('h2', { text: modo === 'entrar' ? 'Bienvenido de nuevo' : 'Crea tu cuenta' }),
       el('p', { class: 'sub', text: 'Con una cuenta tus actividades se guardan en la nube y las tienes en cualquier dispositivo.' }),
       google,
-      ajustes.google ? null : el('small', { class: 'sub', text: 'El acceso con Google todavía no está activado en este sitio.' }),
+      ajustes.google ? '' : el('small', { class: 'sub', text: 'El acceso con Google todavía no está activado en este sitio.' }),
       el('div', { class: 'acceso-o' }, [el('span', { text: 'o con tu correo' })]),
       el('form', { class: 'acceso-form', attrs: { novalidate: true }, on: { submit: enviar } }, [
         el('label', { class: 'campo', text: 'Correo' }), correo,

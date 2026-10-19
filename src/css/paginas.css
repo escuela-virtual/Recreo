@@ -196,3 +196,19 @@
 .acceso-o::before, .acceso-o::after { content: ''; flex: 1; height: 1px; background: var(--linea); }
 .acceso-form { display: grid; gap: 4px; } .acceso-form .btn { justify-content: center; margin-top: 10px; }
 .acceso-msg { min-height: 1.4em; color: var(--mal); font-size: 14px; margin-top: 6px; } .acceso-msg.ok { color: var(--ok); }
+
+/* Panel de administración */
+.adm-datos { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 14px; margin: 14px 0 18px; }
+.adm-dato { background: var(--tarjeta); border: 1px solid var(--linea); border-radius: var(--radio); padding: 16px 18px; display: grid; box-shadow: var(--sombra); }
+.adm-dato b { font: 600 34px 'Fredoka', sans-serif; color: var(--acento-osc); line-height: 1.1; }
+.adm-dato small { color: var(--gris); }
+.adm-rejilla { display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 0 18px; }
+.adm-graf { width: 100%; height: auto; margin-top: 8px; }
+.adm-fila { display: grid; grid-template-columns: minmax(80px, 1fr) 2fr auto; gap: 10px; align-items: center; padding: 4px 0; }
+.adm-barra { background: var(--suave); border-radius: 99px; height: 10px; overflow: hidden; }
+.adm-barra i { display: block; height: 100%; background: var(--acento); border-radius: 99px; }
+.adm-punto { width: 10px; height: 10px; border-radius: 50%; background: var(--bien, #2fa84f); display: inline-block; }
+.adm-tabla { overflow-x: auto; margin: 12px 0; }
+.adm-tabla table { width: 100%; border-collapse: collapse; font-size: 15px; }
+.adm-tabla th, .adm-tabla td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); white-space: nowrap; }
+.adm-tabla th { color: var(--gris); font-weight: 700; }
