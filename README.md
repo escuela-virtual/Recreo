@@ -1,4 +1,4 @@
-# Recreo
+# Recreatic
 
 Creador de actividades interactivas e imprimibles para el aula, **en español, gratis y sin restricciones**.
 Funciona en el navegador y no tiene límites de uso. La cuenta es opcional: sin ella todo se guarda en el dispositivo. El nombre se cambia en `src/nombre.js`.

@@ -1,2 +1,2 @@
 'use strict';
-export const NOMBRE = 'Recreo';
+export const NOMBRE = 'Recreatic';
