@@ -5,8 +5,10 @@ import './css/sitio.css';
 import './css/escenario.css';
 import './css/paginas.css';
 import { ruta, iniciarRouter } from './core/router.js';
-import { aplicarTema } from './core/tema.js';
-import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia } from './core/nube.js';
+import { aplicarTema, aplicarAparienciaDeCuenta, yaEligioApariencia, marcarAparienciaElegida } from './core/tema.js';
+import { ventanaBienvenida } from './ui/apariencia.js';
+import { vistaPerfil } from './ui/perfil.js';
+import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia, usuarioActual } from './core/nube.js';
 import { vistaAdmin } from './ui/admin.js';
 import { vistaComunidad } from './ui/comunidad.js';
 import { sincronizar } from './core/almacen.js';
@@ -36,17 +38,20 @@ ruta('/funciones', vistaFunciones);
 ruta('/listas', vistaListas);
 ruta('/entrar', vistaEntrar);
 ruta('/admin', vistaAdmin);
+ruta('/perfil', vistaPerfil);
 ruta('/comunidad', vistaComunidad);
 ruta('/comunidad/:autor/:id', vistaComunidadActividad);
 
 // Sin top-level await (el objetivo de compilación de Vite no lo admite).
 (async () => {
   try { await iniciarNube(); unirPresencia(); } catch (e) { console.warn('Nube no disponible:', e); }
+  if (usuarioActual() && !aplicarAparienciaDeCuenta() && yaEligioApariencia()) marcarAparienciaElegida(); // sube a la cuenta lo elegido antes de entrar
   alCambiarUsuario((u, evento) => {
-    if (u) sincronizar();
+    if (u) { sincronizar(); if (!aplicarAparienciaDeCuenta() && yaEligioApariencia()) marcarAparienciaElegida(); }
     if (evento === 'SIGNED_IN') { const r = rutaDeVuelta(); if (r) ir(r); } // tras volver de Google
   });
   sincronizar();
   document.addEventListener('visibilitychange', () => { if (!document.hidden) sincronizar(); });
   iniciarRouter(document.getElementById('app'));
+  if (!yaEligioApariencia() && !/^#\/(embed|c)\//.test(location.hash)) ventanaBienvenida(); // primera visita (no en actividades incrustadas ni enlaces compartidos)
 })();

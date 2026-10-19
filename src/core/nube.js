@@ -66,6 +66,14 @@ export function rutaDeVuelta() {
   try { const r = sessionStorage.getItem('recreo:volver'); sessionStorage.removeItem('recreo:volver'); return r; } catch (_) { return null; }
 }
 
+// ---- Apariencia guardada en la cuenta ----
+export const aparienciaDeCuenta = () => (usuario && usuario.user_metadata && usuario.user_metadata.apariencia) || null;
+export async function guardarApariencia(a) {
+  if (!supa || !usuario) return;
+  const { error } = await supa.auth.updateUser({ data: { apariencia: a } });
+  if (error) throw error;
+}
+
 // ---- Panel de administración ----
 // Solo responde a quien esté en la tabla `admins`; las funciones SQL lo comprueban en el servidor.
 let admin = null;

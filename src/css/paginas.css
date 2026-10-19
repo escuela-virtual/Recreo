@@ -270,3 +270,19 @@
 @media (max-width: 800px) {
   .fila > select, .fila > input[type=search], .fila > input[type=text] { width: 100%; flex: 1 1 100%; }
 }
+
+/* Apariencia y perfil */
+.apar h3 { font-size: 16px; margin: 14px 0 8px; } .apar h3:first-child { margin-top: 4px; }
+.apar-modos { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.apar-modo { display: grid; justify-items: center; gap: 4px; padding: 14px 10px; border: 2px solid var(--linea); border-radius: 14px; background: #f7f6ff; color: #1d1b3a; font-weight: 700; font-size: 16px; }
+.apar-modo span { font-size: 26px; line-height: 1; }
+.apar-oscuro { background: #1b1838; color: #f1efff; }
+.apar-modo.act { border-color: var(--acento); box-shadow: 0 0 0 3px color-mix(in srgb, var(--acento) 25%, transparent); }
+.apar-colores { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.apar-colores button { border: 2px solid transparent; background: none; display: grid; gap: 4px; justify-items: center; font-size: 13px; color: var(--gris); padding: 6px 4px; border-radius: 12px; }
+.apar-colores button i { width: 34px; height: 34px; border-radius: 50%; background: var(--c); box-shadow: inset 0 -3px 0 rgba(0,0,0,.15); display: block; }
+.apar-colores button.act { border-color: var(--c); color: var(--tinta); font-weight: 700; }
+.perfil-cab { display: flex; gap: 16px; align-items: center; }
+.perfil-avatar { flex: none; width: 64px; height: 64px; border-radius: 50%; background: var(--acento); color: #fff; display: grid; place-items: center; font: 600 28px 'Fredoka', sans-serif; overflow: hidden; }
+.perfil-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.perfil-cab h2 { margin: 0; word-break: break-word; } .perfil-cab p { word-break: break-all; }

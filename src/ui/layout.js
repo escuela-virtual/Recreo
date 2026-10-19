@@ -25,6 +25,9 @@ function controlTema() {
   pintarPaleta();
   const color = el('button', { class: 'ico-btn', attrs: { type: 'button', title: 'Elegir color del tema' }, text: '◑', on: { click: (e) => { e.stopPropagation(); paleta.hidden = !paleta.hidden; } } });
   document.addEventListener('click', (e) => { if (!caja.contains(e.target)) paleta.hidden = true; });
+  // si el tema cambia desde otro sitio (ventana de bienvenida, perfil), se actualizan el icono y la paleta
+  const alTema = () => { if (!caja.isConnected) window.removeEventListener('recreo-tema', alTema); else { pintarIcono(); pintarPaleta(); } };
+  window.addEventListener('recreo-tema', alTema);
   caja.append(boton, color, paleta);
   return caja;
 }
@@ -43,6 +46,7 @@ function controlCuenta() {
     esAdmin().then((si) => { enlaceAdmin.hidden = !si; });
     const menu = el('div', { class: 'paleta cuenta-menu', attrs: { hidden: true } }, [
       el('div', { class: 'cuenta-dato' }, [el('b', { text: nombre }), el('small', { text: u.email })]),
+      el('a', { class: 'btn btn-claro btn-mini', text: 'Mi perfil', attrs: { href: '#/perfil' } }),
       enlaceAdmin,
       el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Cerrar sesión', on: { click: async () => { await salir(); ir('/'); } } })
     ]);
@@ -84,7 +88,7 @@ function barraInferior() {
   const { ruta } = actual();
   const con = !hayNube || usuarioActual();
   const item = (r, t, i) => el('a', { class: 'bi-item' + (ruta === r ? ' act' : ''), attrs: { href: '#' + r }, html: ico(ICO[i]) + `<span>${t}</span>` });
-  const extra = [['/funciones', 'Funciones'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados']];
+  const extra = [['/funciones', 'Funciones'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados'], ['/perfil', 'Mi perfil']];
   const hoja = el('div', { class: 'bi-hoja', attrs: { hidden: true } }, extra.map(([r, t]) => el('a', { class: ruta === r ? 'act' : '', text: t, attrs: { href: '#' + r } })));
   const mas = el('button', { class: 'bi-item' + (extra.some(([r]) => r === ruta) ? ' act' : ''), attrs: { type: 'button', 'aria-label': 'Más opciones' }, html: ico(ICO.mas) + '<span>Más</span>', on: { click: (e) => { e.stopPropagation(); hoja.hidden = !hoja.hidden; } } });
   const cerrar = () => { if (!hoja.isConnected) document.removeEventListener('click', cerrar); else hoja.hidden = true; };

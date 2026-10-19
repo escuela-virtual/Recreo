@@ -1,6 +1,7 @@
 'use strict';
 
 import { pref } from './almacen.js';
+import { usuarioActual, guardarApariencia, aparienciaDeCuenta } from './nube.js';
 
 // Tema claro/oscuro (claro por defecto) y color de acento. Se guardan por dispositivo.
 export const COLORES = [
@@ -33,6 +34,28 @@ export function aplicarTema() {
   raiz.dataset.tema = temaActual(); raiz.dataset.color = color;
   poner('link[rel="icon"]', { rel: 'icon', type: 'image/svg+xml', href: 'data:image/svg+xml,' + encodeURIComponent(faviconSvg(acento)) }); // el favicon sigue al color elegido
   poner('meta[name="theme-color"]', { name: 'theme-color', content: temaActual() === 'oscuro' ? '#14122a' : acento });
+  window.dispatchEvent(new Event('recreo-tema')); // para que los botones de la cabecera se pongan al día
 }
-export const alternarTema = () => { pref.guardar('tema', temaActual() === 'oscuro' ? 'claro' : 'oscuro'); aplicarTema(); };
-export const fijarColor = (id) => { pref.guardar('color', id); aplicarTema(); };
+
+// Con sesión iniciada, la apariencia viaja con la cuenta (metadatos del usuario en Supabase).
+let espera = null;
+const subir = () => {
+  if (!usuarioActual()) return;
+  clearTimeout(espera);
+  espera = setTimeout(() => guardarApariencia({ tema: temaActual(), color: colorActual() }).catch((e) => console.warn('Apariencia:', e)), 600);
+};
+export const yaEligioApariencia = () => pref.leer('apariencia-elegida', false) === true;
+export const marcarAparienciaElegida = () => { pref.guardar('apariencia-elegida', true); subir(); };
+// Aplica lo guardado en la cuenta; devuelve false si la cuenta aún no tiene preferencias.
+export function aplicarAparienciaDeCuenta() {
+  const a = aparienciaDeCuenta();
+  if (!a) return false;
+  pref.guardar('tema', a.tema === 'oscuro' ? 'oscuro' : 'claro');
+  if (COLORES.some((c) => c.id === a.color)) pref.guardar('color', a.color);
+  pref.guardar('apariencia-elegida', true);
+  aplicarTema();
+  return true;
+}
+export const fijarTema = (modo) => { pref.guardar('tema', modo === 'oscuro' ? 'oscuro' : 'claro'); aplicarTema(); subir(); };
+export const alternarTema = () => fijarTema(temaActual() === 'oscuro' ? 'claro' : 'oscuro');
+export const fijarColor = (id) => { pref.guardar('color', id); aplicarTema(); subir(); };
