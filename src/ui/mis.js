@@ -105,4 +105,7 @@ export async function vistaMis(raiz) {
     el('div', { class: 'mis-layout' }, [lateral, grid])
   ]));
   cargar();
+  const alSync = () => cargar();
+  window.addEventListener('recreo-sync', alSync);
+  return () => window.removeEventListener('recreo-sync', alSync);
 }

@@ -1,7 +1,7 @@
 # Recreo
 
 Creador de actividades interactivas e imprimibles para el aula, **en español, gratis y sin restricciones**.
-Funciona 100 % en el navegador: no hay servidor, cuentas ni límites de uso. El nombre se cambia en `src/nombre.js`.
+Funciona en el navegador y no tiene límites de uso. La cuenta es opcional: sin ella todo se guarda en el dispositivo. El nombre se cambia en `src/nombre.js`.
 
 ## Qué incluye
 
@@ -53,3 +53,15 @@ Monta cada plantilla con cada tipo de contenido compatible y cada actividad de e
 
 - Al no haber servidor, los datos viven en el navegador del dispositivo (IndexedDB): exporta tus actividades a archivo para respaldarlas o moverlas.
 - Los resultados de las tareas llegan al profesor mediante un código que entrega el alumno, no de forma automática.
+
+## Cuentas y copia en la nube (Supabase)
+
+- Acceso con **correo y contraseña** y con **Google**. Con la sesión iniciada, cada actividad se guarda también en la tabla `actividades` de Supabase y se sincroniza entre dispositivos (gana la copia más reciente). El historial de versiones queda solo en el dispositivo.
+- Seguridad: RLS activo; cada persona solo ve, crea, edita y borra sus propias filas (`user_id = auth.uid()`). El rol `anon` no tiene acceso. La clave `sb_publishable_…` de `.env` es pública por diseño.
+- Variables: `VITE_SUPABASE_URL` y `VITE_SUPABASE_KEY` (en `.env`). Sin ellas la app funciona igual, solo sin cuentas.
+- **Google**: hay que activarlo en Supabase (*Authentication → Sign In / Providers → Google*) con un cliente OAuth de Google Cloud cuya URI de redirección sea `https://<proyecto>.supabase.co/auth/v1/callback`. Mientras no esté activo, la app muestra el botón desactivado.
+- En *Authentication → URL Configuration* hay que poner la URL del sitio y las de desarrollo/preview como *Redirect URLs*.
+
+## Despliegue
+
+Vercel, conectado al repositorio de GitHub (cada push a `main` publica). Es un sitio estático: `npm run build` → `dist/`.

@@ -8,7 +8,7 @@ import { ESTILOS } from '../core/estilos.js';
 import { EJEMPLOS } from '../datos/ejemplos.js';
 
 const VENTAJAS = [
-  ['⏱️', 'Listo en un minuto', 'Escribe tu contenido, pulsa jugar y ya está. Sin registro y sin límites.'],
+  ['⏱️', 'Listo en un minuto', 'Escribe tu contenido, pulsa jugar y ya está. Sin límites y sin obligación de crear cuenta.'],
   ['🧩', 'Un contenido, muchos juegos', 'Cambia de plantilla con un clic: del cuestionario a las parejas, la sopa de letras o la ruleta.'],
   ['🖨️', 'También en papel', 'Cada actividad se imprime como una hoja limpia, lista para clase o para deberes.'],
   ['🎤', 'Con tu propia voz', 'Graba audio en cada elemento para que el juego hable como tú.'],
@@ -25,12 +25,12 @@ export function vistaInicio(raiz) {
   main.append(
     el('section', { class: 'bloque hero' }, [
       el('div', { class: 'hero-txt' }, [
-        el('span', { class: 'hero-etq', text: 'Gratis · en español · sin cuentas' }),
+        el('span', { class: 'hero-etq', text: 'Gratis · en español · cuenta opcional' }),
         el('h1', { text: 'Convierte cualquier tema en un juego.' }),
         el('ul', { class: 'checks' }, [
           el('li', { html: `<b>${n}</b> tipos de actividad listos para usar` }),
           el('li', { html: `<b>${ESTILOS.length}</b> estilos visuales, audio, impresión y modo oscuro` }),
-          el('li', { html: 'Tus actividades <b>se quedan en tu dispositivo</b>' })
+          el('li', { html: 'Tus actividades <b>se guardan solas</b>, en tu dispositivo y en tu cuenta si entras' })
         ]),
         el('div', { class: 'fila' }, [
           el('a', { class: 'btn btn-grande', text: 'Crear mi primera actividad', attrs: { href: '#/crear' } }),

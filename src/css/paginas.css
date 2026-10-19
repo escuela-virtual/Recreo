@@ -179,3 +179,20 @@
 .paso b { font-family: 'Fredoka', sans-serif; }
 .pasos-barra li.act { color: var(--tinta); }
 .centro.sub { margin-bottom: 8px; }
+
+/* Cuenta y acceso */
+.avatar { overflow: hidden; font-weight: 800; font-family: 'Fredoka', sans-serif; background: var(--acento); color: #fff; border-color: var(--acento-osc); }
+.avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.cuenta-menu { grid-template-columns: 1fr; min-width: 220px; gap: 10px; }
+.cuenta-dato { display: grid; word-break: break-all; } .cuenta-dato small { color: var(--gris); }
+.acceso { max-width: 460px; margin: 28px auto; }
+.acceso-tabs { display: flex; gap: 4px; background: var(--suave); border-radius: 12px; padding: 4px; margin-bottom: 18px; }
+.acceso-tabs button { flex: 1; border: none; background: none; padding: 8px; border-radius: 9px; font-weight: 700; color: var(--gris); }
+.acceso-tabs button.act { background: var(--tarjeta); color: var(--tinta); box-shadow: var(--sombra); }
+.acceso h2 { margin-bottom: 4px; } .acceso .sub { margin-bottom: 16px; }
+.btn-google { width: 100%; display: flex; align-items: center; justify-content: center; gap: 10px; padding: 11px; border-radius: var(--radio-b); border: 1px solid #dadce0; background: #fff; color: #3c4043; font-weight: 700; font-size: 16px; }
+.btn-google:hover:not(:disabled) { background: #f7f8f8; box-shadow: 0 1px 3px rgba(0,0,0,.2); } .btn-google:disabled { opacity: .6; cursor: wait; }
+.acceso-o { display: flex; align-items: center; gap: 10px; color: var(--gris); font-size: 14px; margin: 16px 0; }
+.acceso-o::before, .acceso-o::after { content: ''; flex: 1; height: 1px; background: var(--linea); }
+.acceso-form { display: grid; gap: 4px; } .acceso-form .btn { justify-content: center; margin-top: 10px; }
+.acceso-msg { min-height: 1.4em; color: var(--mal); font-size: 14px; margin-top: 6px; } .acceso-msg.ok { color: var(--ok); }

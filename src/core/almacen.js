@@ -1,5 +1,8 @@
 'use strict';
 
+import { usuarioActual, traerActividades, subirActividades, borrarActividadNube } from './nube.js';
+import { aviso } from './util.js';
+
 // Persistencia en IndexedDB: un único almacén de actividades y otro de resultados.
 const abrir = () => new Promise((ok, mal) => {
   const r = indexedDB.open('recreo-datos', 1);
@@ -22,7 +25,39 @@ const API = (almacen) => ({
   guardar: (o) => op(almacen, 'readwrite', (s) => s.put(o)),
   borrar: (id) => op(almacen, 'readwrite', (s) => s.delete(id))
 });
-export const actividades = API('actividades');
+const crudo = API('actividades');
+
+// Local primero: IndexedDB manda (funciona sin conexión ni cuenta). Con sesión iniciada, cada cambio
+// se refleja también en la nube y `sincronizar()` junta ambas copias (gana la más reciente).
+let sincronizando = null, ultimoAviso = 0;
+const falloNube = (e) => { console.warn('Nube:', e); if (Date.now() - ultimoAviso > 20000) { ultimoAviso = Date.now(); aviso('No se pudo guardar en la nube; queda en este dispositivo.'); } };
+
+export function sincronizar() {
+  if (!usuarioActual()) return Promise.resolve();
+  if (sincronizando) return sincronizando;
+  sincronizando = (async () => {
+    try {
+      const [locales, remotas] = await Promise.all([crudo.todos(), traerActividades()]);
+      const rem = new Map(remotas.map((r) => [r.id, r])), loc = new Map(locales.map((a) => [a.id, a]));
+      const aSubir = locales.filter((a) => { const r = rem.get(a.id); return !r || (a.modificado || 0) > r.modificado; });
+      let bajadas = 0;
+      for (const r of remotas) {
+        const a = loc.get(r.id);
+        if (!a || r.modificado > (a.modificado || 0)) { await crudo.guardar({ ...(a && a.versiones ? { versiones: a.versiones } : {}), ...r.datos, id: r.id }); bajadas++; }
+      }
+      await subirActividades(aSubir);
+      if (bajadas || aSubir.length) window.dispatchEvent(new Event('recreo-sync'));
+    } catch (e) { falloNube(e); } finally { sincronizando = null; }
+  })();
+  return sincronizando;
+}
+
+export const actividades = {
+  todos: async () => { await sincronizando; return crudo.todos(); },
+  uno: (id) => crudo.uno(id),
+  guardar: async (a) => { await crudo.guardar(a); if (usuarioActual()) subirActividades([a]).catch(falloNube); },
+  borrar: async (id) => { await crudo.borrar(id); if (usuarioActual()) borrarActividadNube(id).catch(falloNube); }
+};
 export const resultados = API('resultados');
 
 // Preferencias por dispositivo (si el almacenamiento falla, se usan los valores por defecto).

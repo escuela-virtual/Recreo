@@ -3,13 +3,20 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "scripts": { "dev": "vite", "build": "vite build", "preview": "vite preview" },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
   "dependencies": {
+    "@fontsource/fredoka": "^5.1.0",
+    "@fontsource/lora": "^5.1.0",
     "@fontsource/nunito": "^5.1.0",
     "@fontsource/opendyslexic": "^5.1.0",
     "@fontsource/patrick-hand": "^5.1.0",
-    "@fontsource/lora": "^5.1.0",
-    "@fontsource/fredoka": "^5.1.0"
+    "@supabase/supabase-js": "^2.118.0"
   },
-  "devDependencies": { "vite": "^6.0.0" }
+  "devDependencies": {
+    "vite": "^6.0.0"
+  }
 }

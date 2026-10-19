@@ -24,6 +24,7 @@ h1 { font-size: 34px; } h2 { font-size: 26px; } h3 { font-size: 20px; }
 .cab nav a:hover { opacity: 1; text-decoration: none; color: var(--acento-osc); }
 .cab nav a.act { color: var(--acento-osc); opacity: 1; box-shadow: 0 3px 0 -1px var(--acento); }
 .cab nav a.btn { color: #fff; opacity: 1; box-shadow: none; }
+.cab nav a.btn-claro { color: var(--tinta); box-shadow: 0 1px 0 var(--linea); }
 
 /* Selector de tema */
 .tema-ctl { display: flex; align-items: center; gap: 6px; position: relative; }
@@ -60,7 +61,7 @@ h1 { font-size: 34px; } h2 { font-size: 26px; } h3 { font-size: 20px; }
 
 /* Formularios */
 label.campo { display: block; font-weight: 700; margin-bottom: 4px; }
-input[type=text], input[type=search], input[type=number], textarea, select { width: 100%; padding: 9px 12px; border: 1px solid var(--linea); border-radius: var(--radio-b); background: var(--tarjeta); color: var(--tinta); }
+input[type=text], input[type=search], input[type=number], input[type=password], input[type=email], textarea, select { width: 100%; padding: 9px 12px; border: 1px solid var(--linea); border-radius: var(--radio-b); background: var(--tarjeta); color: var(--tinta); }
 input:focus, textarea:focus, select:focus { outline: 2px solid var(--acento); border-color: var(--acento); }
 input[type=checkbox], input[type=radio], input[type=range] { accent-color: var(--acento); }
 textarea { resize: vertical; min-height: 44px; }
