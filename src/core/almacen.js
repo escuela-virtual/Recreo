@@ -1,6 +1,6 @@
 'use strict';
 
-import { usuarioActual, traerActividades, subirActividades, borrarActividadNube } from './nube.js';
+import { usuarioActual, traerActividades, subirActividades, borrarActividadNube, publicarComunidad, quitarDeComunidad } from './nube.js';
 import { aviso } from './util.js';
 
 // Persistencia en IndexedDB: un único almacén de actividades y otro de resultados.
@@ -55,8 +55,19 @@ export function sincronizar() {
 export const actividades = {
   todos: async () => { await sincronizando; return crudo.todos(); },
   uno: (id) => crudo.uno(id),
-  guardar: async (a) => { await crudo.guardar(a); if (usuarioActual()) subirActividades([a]).catch(falloNube); },
-  borrar: async (id) => { await crudo.borrar(id); if (usuarioActual()) borrarActividadNube(id).catch(falloNube); }
+  guardar: async (a) => {
+    const nube = !!usuarioActual();
+    // Comunidad: se publica solo si la persona lo autorizó (`publica`); `pubMod` evita republicar cuando solo cambia "jugado".
+    if (nube && a.publica && !a.papelera && a.pubMod !== a.modificado) { a.pubMod = a.modificado; a.enComunidad = true; publicarComunidad(a).catch(falloNube); }
+    else if (nube && a.enComunidad && (!a.publica || a.papelera)) { a.enComunidad = false; a.pubMod = null; quitarDeComunidad(a.id).catch(falloNube); }
+    await crudo.guardar(a);
+    if (nube) subirActividades([a]).catch(falloNube);
+  },
+  borrar: async (id) => {
+    const a = await crudo.uno(id);
+    await crudo.borrar(id);
+    if (usuarioActual()) { borrarActividadNube(id).catch(falloNube); if (a && a.enComunidad) quitarDeComunidad(id).catch(falloNube); }
+  }
 };
 export const resultados = API('resultados');
 

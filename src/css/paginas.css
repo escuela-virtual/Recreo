@@ -212,3 +212,8 @@
 .adm-tabla table { width: 100%; border-collapse: collapse; font-size: 15px; }
 .adm-tabla th, .adm-tabla td { text-align: left; padding: 8px 10px; border-bottom: 1px solid var(--linea); white-space: nowrap; }
 .adm-tabla th { color: var(--gris); font-weight: 700; }
+
+/* Comunidad */
+.com-tarjeta { display: flex; align-items: center; gap: 10px; justify-content: space-between; }
+.com-enlace { display: flex; align-items: center; gap: 12px; color: inherit; min-width: 0; flex: 1; }
+.com-enlace:hover { text-decoration: none; }

@@ -8,7 +8,7 @@ import { hayNube, usuarioActual, alCambiarUsuario, salir, esAdmin } from '../cor
 import { ir } from '../core/router.js';
 
 // El tercer valor marca las pestañas que solo se ven con sesión iniciada (si la app no tiene cuentas, se ven todas).
-const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/mis', 'Mis actividades', true], ['/listas', 'Listas', true], ['/resultados', 'Mis resultados', true]];
+const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/comunidad', 'Comunidad'], ['/mis', 'Mis actividades', true], ['/listas', 'Listas', true], ['/resultados', 'Mis resultados', true]];
 
 const marca = () => el('a', { class: 'logo', attrs: { href: '#/' }, html: marcaSvg() + `<span>${NOMBRE}</span>` });
 

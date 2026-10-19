@@ -96,6 +96,34 @@ export function unirPresencia() {
   alCambiarUsuario(() => canal.track(datosPresencia()));
 }
 
+// ---- Comunidad: actividades que sus autores decidieron compartir ----
+const nombreAutor = () => {
+  const m = usuario.user_metadata || {};
+  return m.full_name || m.name || String(usuario.email || '').split('@')[0] || 'Anónimo'; // nunca el correo completo
+};
+const paraComunidad = (a) => { const { versiones, tarea, carpeta, papelera, jugado, ...resto } = a; return resto; };
+export async function publicarComunidad(a) {
+  const { error } = await supa.from('comunidad').upsert({ user_id: usuario.id, id: a.id, autor: nombreAutor(), titulo: a.titulo, plantilla: a.plantilla, datos: paraComunidad(a), publicado: a.modificado || Date.now() }, { onConflict: 'user_id,id' });
+  if (error) throw error;
+}
+export async function quitarDeComunidad(id, autorId) {
+  let q = supa.from('comunidad').delete().eq('id', id);
+  q = q.eq('user_id', autorId || usuario.id);
+  const { error } = await q;
+  if (error) throw error;
+}
+export async function listarComunidad() {
+  const { data, error } = await supa.from('comunidad').select('user_id,id,autor,titulo,plantilla,publicado,copias').order('publicado', { ascending: false }).limit(200);
+  if (error) throw error;
+  return data;
+}
+export async function traerDeComunidad(autorId, id) {
+  const { data, error } = await supa.from('comunidad').select('autor,datos,user_id,id').eq('user_id', autorId).eq('id', id).maybeSingle();
+  if (error) throw error;
+  return data;
+}
+export const contarCopia = (autorId, id) => supa.rpc('comunidad_copiada', { p_user: autorId, p_id: id });
+
 // ---- Actividades en la nube ----
 const sinHistorial = (a) => { const { versiones, ...resto } = a; return resto; }; // el historial se queda en el dispositivo (pesa mucho)
 const fila = (a) => ({ user_id: usuario.id, id: a.id, titulo: a.titulo, datos: sinHistorial(a), modificado: a.modificado || Date.now(), papelera: a.papelera || null });

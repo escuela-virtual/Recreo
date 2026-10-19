@@ -8,13 +8,14 @@ import { ruta, iniciarRouter } from './core/router.js';
 import { aplicarTema } from './core/tema.js';
 import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia } from './core/nube.js';
 import { vistaAdmin } from './ui/admin.js';
+import { vistaComunidad } from './ui/comunidad.js';
 import { sincronizar } from './core/almacen.js';
 import { vistaEntrar } from './ui/entrar.js';
 import { ir } from './core/router.js';
 import { vistaInicio } from './ui/inicio.js';
 import { vistaCrear } from './ui/crear.js';
 import { vistaEditor } from './ui/editor.js';
-import { vistaActividad, vistaEjemplo, vistaCompartida, vistaIncrustada } from './ui/actividad.js';
+import { vistaActividad, vistaComunidadActividad, vistaEjemplo, vistaCompartida, vistaIncrustada } from './ui/actividad.js';
 import { vistaResultados } from './ui/resultados.js';
 import { vistaFunciones } from './ui/funciones.js';
 import { vistaListas } from './ui/listas.js';
@@ -35,6 +36,8 @@ ruta('/funciones', vistaFunciones);
 ruta('/listas', vistaListas);
 ruta('/entrar', vistaEntrar);
 ruta('/admin', vistaAdmin);
+ruta('/comunidad', vistaComunidad);
+ruta('/comunidad/:autor/:id', vistaComunidadActividad);
 
 // Sin top-level await (el objetivo de compilación de Vite no lo admite).
 (async () => {

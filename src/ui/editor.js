@@ -7,6 +7,7 @@ import { plantillaPorId } from '../plantillas.js';
 import { TIPOS, nuevoItem, contenidoVacio, cuenta } from '../core/contenido.js';
 import { actividades } from '../core/almacen.js';
 import { ir } from '../core/router.js';
+import { usuarioActual } from '../core/nube.js';
 import { opcionesIniciales } from '../juegos/ayudas.js';
 import { botonAudio } from './audio-editor.js';
 import { estiloRecordado } from './selectores.js';
@@ -183,6 +184,23 @@ function dialogoImportar(tipo, alAceptar) {
   area.focus();
 }
 
+// Autorización al crear: la actividad solo entra a la Comunidad si la persona dice que sí (cerrar = no).
+function preguntarCompartir() {
+  return new Promise((ok) => {
+    const cerrar = (v) => { fondo.remove(); ok(v); };
+    const fondo = el('div', { class: 'modal-fondo', on: { click: (e) => { if (e.target === fondo) cerrar(false); } } }, [el('div', { class: 'modal' }, [
+      el('h2', { text: '¿Compartir con la Comunidad?' }),
+      el('p', { text: 'Si aceptas, cualquier persona podrá ver, jugar y guardar una copia de esta actividad, con tu nombre como autor. Si no, solo la verás tú.' }),
+      el('p', { class: 'sub', text: 'Puedes cambiarlo cuando quieras desde el editor, y borrar la actividad la retira de la Comunidad.' }),
+      el('div', { class: 'acciones' }, [
+        el('button', { class: 'btn btn-claro', text: 'No, mantenerla privada', on: { click: () => cerrar(false) } }),
+        el('button', { class: 'btn', text: 'Sí, compartir', on: { click: () => cerrar(true) } })
+      ])
+    ])]);
+    document.body.appendChild(fondo);
+  });
+}
+
 let cabPares = ['Término / pregunta', 'Definición / respuesta'];
 let borrador = null; // conserva lo escrito al cambiar de variante (se re-pinta la vista)
 
@@ -243,6 +261,7 @@ export async function vistaEditor(raiz, params) {
     if (previa && (JSON.stringify(previa.contenido) !== JSON.stringify(act.contenido) || previa.titulo !== act.titulo)) {
       act.versiones = [{ fecha: previa.modificado, titulo: previa.titulo, tipo: previa.tipo, contenido: previa.contenido }, ...(previa.versiones || [])].slice(0, 8);
     }
+    if (act.nuevo && usuarioActual()) act.publica = await preguntarCompartir();
     act.modificado = Date.now();
     delete act.nuevo;
     await actividades.guardar(act);
@@ -276,7 +295,8 @@ export async function vistaEditor(raiz, params) {
     el('div', { class: 'tarjeta' }, [
       el('div', { class: 'fila' }, [iconoPlantilla(plantilla), el('div', {}, [el('h2', { text: plantilla.nombre }), el('p', { class: 'sub', text: plantilla.descripcion })]), el('span', { class: 'esp' }),
         act.versiones && act.versiones.length ? el('button', { class: 'btn btn-claro btn-mini', text: '↺ Historial', on: { click: verHistorial } }) : null]),
-      el('div', { class: 'ed-meta' }, [el('label', { class: 'campo', text: 'Título' }), titulo, variantes, el('label', { class: 'campo', text: 'Etiquetas', style: { marginTop: '10px' } }), etiquetas])
+      el('div', { class: 'ed-meta' }, [el('label', { class: 'campo', text: 'Título' }), titulo, variantes, el('label', { class: 'campo', text: 'Etiquetas', style: { marginTop: '10px' } }), etiquetas,
+        usuarioActual() && !act.nuevo ? el('label', { class: 'chk', style: { marginTop: '10px' } }, [el('input', { attrs: { type: 'checkbox' }, checked: !!act.publica, on: { change: (e) => { act.publica = e.target.checked; } } }), ' Compartir en la Comunidad (otros podrán jugarla y copiarla)']) : null])
     ]),
     el('div', { class: 'tarjeta' }, [el('div', { class: 'fila entre' }, [el('h3', { text: TIPOS[tipo].nombre }), el('span', { class: 'sub', text: TIPOS[tipo].ayuda })]), filas, barra])
   );

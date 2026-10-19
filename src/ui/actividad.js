@@ -13,6 +13,7 @@ import { compartir, incrustar, imprimir, definirTarea } from './acciones.js';
 import { decodificar, paquete } from '../core/codec.js';
 import { EJEMPLOS } from '../datos/ejemplos.js';
 import { copiarActividad } from './mis.js';
+import { traerDeComunidad, contarCopia } from '../core/nube.js';
 import { leerListas, urlItem, titulosDe, tarjetaLista } from './listas.js';
 
 const conDefectos = (a) => {
@@ -21,7 +22,7 @@ const conDefectos = (a) => {
 };
 
 // Construye la página de una actividad. modo: 'propia' | 'ajena' (ejemplo o recibida por enlace)
-function construir(raiz, act, { modo, consulta = null }) {
+function construir(raiz, act, { modo, consulta = null, origen = null }) {
   const main = pagina(raiz);
   const propia = modo === 'propia';
   let plantilla = plantillaPorId(act.plantilla);
@@ -95,8 +96,8 @@ function construir(raiz, act, { modo, consulta = null }) {
   }
 
   const aviso_ajena = !propia ? el('div', { class: 'aviso-ajena' }, [
-    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' : 'Esta actividad es un ejemplo o te la han compartido.' }),
-    el('button', { class: 'btn btn-mini', text: 'Guardar una copia para editarla', on: { click: async () => { const c = await copiarActividad(conDefectos({ ...paquete(act), id: uid() })); aviso('Copia guardada en Mis actividades'); ir('/editar/' + c.id); } } })
+    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' : origen ? `Actividad de la comunidad, creada por ${origen.autor}.` : 'Esta actividad es un ejemplo o te la han compartido.' }),
+    el('button', { class: 'btn btn-mini', text: 'Guardar una copia para editarla', on: { click: async () => { const c = await copiarActividad(conDefectos({ ...paquete(act), id: uid() })); if (origen) origen.alCopiar(); aviso('Copia guardada en Mis actividades'); ir('/editar/' + c.id); } } })
   ]) : null;
 
   // Si se llegó desde una lista de reproducción, barra para pasar a la anterior / siguiente actividad.
@@ -123,7 +124,7 @@ function construir(raiz, act, { modo, consulta = null }) {
             ])
           ]),
           el('div', { class: 'fila entre' }, [
-            el('div', {}, [el('p', { class: 'sub', text: modo === 'propia' ? 'por Yo' : act.tarea ? 'Tarea' : 'Actividad de ejemplo' }), el('div', {}, (act.etiquetas || []).map((t) => el('span', { class: 'etiqueta', text: t })))]),
+            el('div', {}, [el('p', { class: 'sub', text: modo === 'propia' ? 'por Yo' : act.tarea ? 'Tarea' : origen ? 'por ' + origen.autor : 'Actividad de ejemplo' }), el('div', {}, (act.etiquetas || []).map((t) => el('span', { class: 'etiqueta', text: t })))]),
             el('div', { class: 'fila acc' }, [
               propia ? el('a', { class: 'enlace-btn', text: '✎ Editar contenido…', attrs: { href: '#/editar/' + act.id } }) : null,
               el('button', { class: 'enlace-btn', text: '🖨 Imprimir', on: { click: () => imprimir(act, plantilla) } }),
@@ -154,6 +155,18 @@ export function vistaEjemplo(raiz, params, consulta) {
   const e = EJEMPLOS.find((x) => x.id === params.id);
   if (!e) { ir('/'); return; }
   return construir(raiz, conDefectos(JSON.parse(JSON.stringify(e))), { modo: 'ajena', consulta });
+}
+
+export async function vistaComunidadActividad(raiz, params) {
+  let fila = null;
+  try { fila = await traerDeComunidad(params.autor, params.id); } catch (_) { /* se muestra como no encontrada */ }
+  if (!fila || !plantillaPorId(fila.datos.plantilla)) {
+    const m = pagina(raiz);
+    m.append(el('div', { class: 'tarjeta' }, [el('h2', { text: 'Actividad no disponible' }), el('p', { class: 'sub', text: 'Su autor la retiró de la comunidad o el enlace no es correcto.' }), el('a', { class: 'btn', text: 'Volver a la Comunidad', attrs: { href: '#/comunidad' } })]));
+    return;
+  }
+  const act = conDefectos({ ...fila.datos, id: 'com-' + fila.id, publica: false, enComunidad: false });
+  return construir(raiz, act, { modo: 'ajena', origen: { autor: fila.autor, alCopiar: () => contarCopia(fila.user_id, fila.id) } });
 }
 
 async function leer(data) {

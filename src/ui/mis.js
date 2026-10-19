@@ -17,7 +17,7 @@ export async function importarArchivo() {
       try {
         const d = JSON.parse(await f.text());
         if (!plantillaPorId(d.plantilla) || !d.tipo || d.contenido == null) throw new Error('formato');
-        const act = { ...d, id: uid(), creado: Date.now(), modificado: Date.now(), publica: false };
+        const act = { ...d, id: uid(), creado: Date.now(), modificado: Date.now(), publica: false, enComunidad: false, pubMod: null };
         await actividades.guardar(act); ok(act);
       } catch (_) { aviso('El archivo no es una actividad válida'); ok(null); }
     };
@@ -29,6 +29,7 @@ export async function importarArchivo() {
 export async function copiarActividad(base) {
   const act = { ...JSON.parse(JSON.stringify(base)), id: uid(), creado: Date.now(), modificado: Date.now(), titulo: base.titulo + ' (copia)' };
   delete act.tarea; delete act.papelera; delete act.carpeta;
+  act.publica = false; delete act.enComunidad; delete act.pubMod; // una copia nunca nace compartida
   await actividades.guardar(act);
   return act;
 }
