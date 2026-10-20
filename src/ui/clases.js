@@ -1,5 +1,7 @@
 'use strict';
 
+import { fechaHora } from '../core/fecha.js';
+
 import { el, limpiar, aviso, fmtTiempo } from '../core/util.js';
 import { pagina } from './layout.js';
 import { ir } from '../core/router.js';
@@ -11,7 +13,6 @@ import {
   usuarioActual, listarClases, crearClase, borrarClase, listarTareas, cambiarTarea, borrarTarea, entregasDe, borrarEntrega, tareasDeClase
 } from '../core/nube.js';
 
-const fechaHora = (t) => new Date(t).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' });
 const estadoTarea = (t) => (t.cerrada ? 'Cerrada' : t.limite && Date.now() > t.limite ? 'Vencida' : t.limite ? 'Abierta · hasta ' + fechaHora(t.limite) : 'Abierta');
 const nombrePlantilla = (id) => (plantillaPorId(id) || { nombre: id }).nombre;
 async function copiar(texto) {
@@ -115,7 +116,7 @@ export async function vistaResultadosTarea(raiz, params) {
         el('div', { class: 'fila', style: { marginTop: '12px' } }, [
           el('button', { class: 'btn btn-mini', attrs: { type: 'button' }, text: 'Copiar enlace', on: { click: () => copiar(enlace) } }),
           el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Actualizar', on: { click: pintar } }),
-          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar en Excel', on: { click: () => descargarCSV(`${t.titulo}.csv`, [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((e) => [e.nombre, e.puntos, e.aciertos, e.errores, e.segundos, new Date(e.creada).toISOString()])]) } }),
+          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar en Excel', on: { click: () => descargarCSV(`${t.titulo}.csv`, [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((e) => [e.nombre, e.puntos, e.aciertos, e.errores, e.segundos, fechaHora(e.creada)])]) } }),
           el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: t.cerrada ? 'Reabrir tarea' : 'Cerrar tarea', on: { click: async () => { try { await cambiarTarea(t.id, { cerrada: !t.cerrada }); pintar(); } catch (e) { aviso('No se pudo cambiar: ' + (e.message || e)); } } } }),
           el('button', { class: 'btn btn-peligro btn-mini', attrs: { type: 'button' }, text: 'Eliminar tarea', on: { click: async () => {
             if (!confirm('¿Eliminar la tarea y todos sus resultados?')) return;

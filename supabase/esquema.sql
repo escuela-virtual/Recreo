@@ -69,10 +69,10 @@ begin
         (select max(a.modificado) from public.actividades a where a.user_id = u.id) as ultima_edicion,
         public.es_admin_de(u.id) as admin
       from auth.users u) x), '[]'::jsonb),
-    'registros_dia', coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', (select count(*) from auth.users u where u.created_at::date = d::date)) order by d)
-      from generate_series(current_date - 29, current_date, interval '1 day') d), '[]'::jsonb),
-    'accesos_dia', coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', (select count(*) from auth.users u where u.last_sign_in_at::date = d::date)) order by d)
-      from generate_series(current_date - 29, current_date, interval '1 day') d), '[]'::jsonb),
+    'registros_dia', coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', (select count(*) from auth.users u where (u.created_at at time zone 'America/Bogota')::date = d::date)) order by d)
+      from generate_series((now() at time zone 'America/Bogota')::date - 29, (now() at time zone 'America/Bogota')::date, interval '1 day') d), '[]'::jsonb),
+    'accesos_dia', coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', (select count(*) from auth.users u where (u.last_sign_in_at at time zone 'America/Bogota')::date = d::date)) order by d)
+      from generate_series((now() at time zone 'America/Bogota')::date - 29, (now() at time zone 'America/Bogota')::date, interval '1 day') d), '[]'::jsonb),
     'plantillas', coalesce((select jsonb_agg(jsonb_build_object('nombre', p, 'n', n) order by n desc) from (
       select datos->>'plantilla' p, count(*) n from public.actividades where papelera is null group by 1 order by 2 desc limit 10) t), '[]'::jsonb),
     'proveedores', coalesce((select jsonb_agg(jsonb_build_object('nombre', p, 'n', n)) from (
@@ -283,7 +283,7 @@ create table public.visitas (dia date primary key, n int not null default 0);
 alter table public.visitas enable row level security;
 create function public.registrar_visita() returns void
 language sql security definer set search_path = '' as $$
-  insert into public.visitas (dia, n) values (current_date, 1)
+  insert into public.visitas (dia, n) values ((now() at time zone 'America/Bogota')::date, 1)
   on conflict (dia) do update set n = public.visitas.n + 1;
 $$;
 create function public.admin_visitas() returns jsonb
@@ -291,7 +291,7 @@ language plpgsql stable security definer set search_path = '' as $$
 begin
   if not public.es_admin() then raise exception 'No autorizado' using errcode = '42501'; end if;
   return coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', coalesce((select v.n from public.visitas v where v.dia = d::date), 0)) order by d)
-    from generate_series(current_date - 29, current_date, interval '1 day') d), '[]'::jsonb);
+    from generate_series((now() at time zone 'America/Bogota')::date - 29, (now() at time zone 'America/Bogota')::date, interval '1 day') d), '[]'::jsonb);
 end $$;
 revoke execute on function public.registrar_visita() from public;
 revoke execute on function public.admin_visitas() from public, anon;

@@ -1,5 +1,7 @@
 'use strict';
 
+import { diaCO } from './fecha.js';
+
 import { createClient } from '@supabase/supabase-js';
 
 // Cuenta y copia en la nube (Supabase). La clave "publishable" es pública por diseño: la seguridad
@@ -93,7 +95,7 @@ export async function esAdmin() {
 // Cuenta anónima de visitas: un navegador suma 1 por día, sin guardar nada de la persona.
 export async function contarVisita() {
   if (!supa) return;
-  const hoy = new Date().toISOString().slice(0, 10);
+  const hoy = diaCO();
   try {
     if (localStorage.getItem('aj:visita') === hoy) return;
     const { error } = await supa.rpc('registrar_visita');

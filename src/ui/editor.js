@@ -1,5 +1,7 @@
 'use strict';
 
+import { fechaHora } from '../core/fecha.js';
+
 import { el, limpiar, uid, aviso } from '../core/util.js';
 import { pagina } from './layout.js';
 import { pasos, iconoPlantilla } from './crear.js';
@@ -259,7 +261,7 @@ export async function vistaEditor(raiz, params) {
       el('h2', { text: 'Historial de versiones' }),
       el('p', { class: 'sub', text: 'Se conservan las últimas versiones guardadas. Al restaurar una, vuelve al editor para revisarla antes de guardar.' }),
       ...act.versiones.map((v) => el('div', { class: 'lista-fila' }, [
-        el('span', { text: new Date(v.fecha).toLocaleString('es') }), el('b', { text: v.titulo }), el('span', { class: 'sub', text: `${cuenta(v.tipo, v.contenido)} elementos` }), el('span', { class: 'esp' }),
+        el('span', { text: fechaHora(v.fecha) }), el('b', { text: v.titulo }), el('span', { class: 'sub', text: `${cuenta(v.tipo, v.contenido)} elementos` }), el('span', { class: 'esp' }),
         el('button', { class: 'btn btn-mini', text: 'Restaurar', on: { click: () => { act.contenido = JSON.parse(JSON.stringify(v.contenido)); act.tipo = v.tipo; act.titulo = v.titulo; borrador = act; fondo.remove(); limpiar(raiz); vistaEditor(raiz, params); } } })])),
       el('div', { class: 'acciones' }, [el('button', { class: 'btn btn-claro', text: 'Cerrar', on: { click: () => fondo.remove() } })])
     ])]);

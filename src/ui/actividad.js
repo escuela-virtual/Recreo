@@ -1,5 +1,7 @@
 'use strict';
 
+import { fechaHora } from '../core/fecha.js';
+
 import { el, limpiar, aviso, uid, fmtTiempo } from '../core/util.js';
 import { pagina } from './layout.js';
 import { plantillaPorId } from '../plantillas.js';
@@ -98,7 +100,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
   }
 
   const aviso_ajena = !propia ? el('div', { class: 'aviso-ajena' }, [
-    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' + (act.tarea.limite ? ' Fecha límite: ' + new Date(act.tarea.limite).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '') : origen ? `Actividad de la comunidad, creada por ${origen.autor}.` : 'Esta actividad es un ejemplo o te la han compartido.' }),
+    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' + (act.tarea.limite ? ' Fecha límite: ' + fechaHora(act.tarea.limite) + '.' : '') : origen ? `Actividad de la comunidad, creada por ${origen.autor}.` : 'Esta actividad es un ejemplo o te la han compartido.' }),
     el('button', { class: 'btn btn-mini', text: 'Guardar una copia para editarla', on: { click: async () => { const c = await copiarActividad(conDefectos({ ...paquete(act), id: uid() })); if (origen) origen.alCopiar(); aviso('Copia guardada en Mis actividades'); ir('/editar/' + c.id); } } })
   ]) : null;
 

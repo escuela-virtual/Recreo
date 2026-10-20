@@ -1,5 +1,7 @@
 'use strict';
 
+import { desdeCampoCO } from '../core/fecha.js';
+
 import { el, aviso, escapar, barajar } from '../core/util.js';
 import { codificar, sinImagenes, paquete, urlBase } from '../core/codec.js';
 import { contenidoParaJugar } from '../core/contenido.js';
@@ -84,7 +86,7 @@ export async function definirTarea(act) {
   crear.onclick = async () => {
     crear.disabled = true;
     try {
-      const id = await crearTarea(act, { claseId: sel.value || null, limite: limite.value ? new Date(limite.value).getTime() : null });
+      const id = await crearTarea(act, { claseId: sel.value || null, limite: limite.value ? desdeCampoCO(limite.value) : null });
       const enlace = `${urlBase()}#/t/${id}`;
       const campo = el('input', { attrs: { type: 'text', readonly: true }, value: enlace, on: { focus: (e) => e.target.select() } });
       salida.replaceChildren(

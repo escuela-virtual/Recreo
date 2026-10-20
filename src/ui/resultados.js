@@ -1,5 +1,7 @@
 'use strict';
 
+import { fechaHora } from '../core/fecha.js';
+
 import { el, limpiar, aviso, fmtTiempo } from '../core/util.js';
 import { pagina } from './layout.js';
 import { resultados } from '../core/almacen.js';
@@ -41,14 +43,14 @@ export async function vistaResultados(raiz) {
         ])]),
         el('div', { class: 'tabla-scroll' }, [el('table', { class: 'tabla' }, [
           el('thead', {}, [el('tr', {}, ['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Tiempo', 'Fecha', 'Origen'].map((t) => el('th', { text: t })))]),
-          el('tbody', {}, lista.map((r) => el('tr', {}, [r.nombre, r.puntos, r.aciertos, r.errores, fmtTiempo(r.segundos), new Date(r.fecha).toLocaleString('es'), r.remoto ? 'Código de alumno' : 'Este dispositivo'].map((v) => el('td', { text: String(v) })))))
+          el('tbody', {}, lista.map((r) => el('tr', {}, [r.nombre, r.puntos, r.aciertos, r.errores, fmtTiempo(r.segundos), fechaHora(r.fecha), r.remoto ? 'Código de alumno' : 'Este dispositivo'].map((v) => el('td', { text: String(v) })))))
         ])])
       ]));
     });
   }
 
   function csv(lista) {
-    const filas = [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((r) => [r.nombre, r.puntos, r.aciertos, r.errores, r.segundos, new Date(r.fecha).toISOString()])];
+    const filas = [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((r) => [r.nombre, r.puntos, r.aciertos, r.errores, r.segundos, fechaHora(r.fecha)])];
     const txt = '﻿' + filas.map((f) => f.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(';')).join('\n');
     const a = el('a', { attrs: { href: URL.createObjectURL(new Blob([txt], { type: 'text/csv;charset=utf-8' })), download: 'resultados.csv' } });
     a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);

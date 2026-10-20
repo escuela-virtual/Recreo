@@ -1,5 +1,7 @@
 'use strict';
 
+import { fechaHora } from '../core/fecha.js';
+
 import { el } from '../core/util.js';
 import { pagina } from './layout.js';
 import { ir } from '../core/router.js';
@@ -7,7 +9,7 @@ import { plantillaPorId } from '../plantillas.js';
 import { usuarioActual, esAdmin, resumenAdmin, conectadosAhora, alCambiarPresencia, visitasAdmin, listarReportes, borrarReporte, quitarDeComunidad } from '../core/nube.js';
 import { aviso } from '../core/util.js';
 
-const fecha = (t) => (t ? new Date(t).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
+const fecha = (t) => (t ? fechaHora(t) : '—');
 const hace = (t) => {
   if (!t) return 'nunca';
   const s = Math.max(0, (Date.now() - new Date(t)) / 1000);
