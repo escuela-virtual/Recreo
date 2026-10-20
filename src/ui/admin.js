@@ -4,7 +4,8 @@ import { el } from '../core/util.js';
 import { pagina } from './layout.js';
 import { ir } from '../core/router.js';
 import { plantillaPorId } from '../plantillas.js';
-import { usuarioActual, esAdmin, resumenAdmin, conectadosAhora, alCambiarPresencia } from '../core/nube.js';
+import { usuarioActual, esAdmin, resumenAdmin, conectadosAhora, alCambiarPresencia, listarReportes, borrarReporte, quitarDeComunidad } from '../core/nube.js';
+import { aviso } from '../core/util.js';
 
 const fecha = (t) => (t ? new Date(t).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
 const hace = (t) => {
@@ -86,6 +87,24 @@ export async function vistaAdmin(raiz) {
   };
   filtro.addEventListener('input', pintarTabla); pintarTabla();
 
+  // Reportes de la Comunidad
+  const reportes = el('div', { class: 'tarjeta' }, [el('h3', { text: 'Reportes de la Comunidad' }), el('p', { class: 'sub', text: 'Cargando…' })]);
+  const pintarReportes = async () => {
+    let lista = [];
+    try { lista = await listarReportes(); } catch (e) { reportes.replaceChildren(el('h3', { text: 'Reportes de la Comunidad' }), el('p', { text: 'No se pudieron cargar: ' + (e.message || e) })); return; }
+    reportes.replaceChildren(el('h3', { text: `Reportes de la Comunidad (${lista.length})` }), ...(lista.length ? lista.map((x) => el('div', { class: 'adm-reporte' }, [
+      el('div', {}, [el('a', { text: 'Ver actividad', attrs: { href: `#/comunidad/${x.autor_id}/${encodeURIComponent(x.act_id)}` } }), el('small', { class: 'sub', text: ' · ' + fecha(x.creada) }), el('p', { text: x.motivo })]),
+      el('div', { class: 'fila' }, [
+        el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descartar', on: { click: async () => { try { await borrarReporte(x.id); pintarReportes(); } catch (e) { aviso('No se pudo: ' + (e.message || e)); } } } }),
+        el('button', { class: 'btn btn-peligro btn-mini', attrs: { type: 'button' }, text: 'Quitar actividad', on: { click: async () => {
+          if (!confirm('¿Quitar la actividad de la Comunidad?')) return;
+          try { await quitarDeComunidad(x.act_id, x.autor_id); await borrarReporte(x.id); pintarReportes(); } catch (e) { aviso('No se pudo: ' + (e.message || e)); }
+        } } })
+      ])
+    ])) : [el('p', { class: 'sub', text: 'No hay reportes pendientes.' })]));
+  };
+  pintarReportes();
+
   const t = r.totales;
   main.replaceChildren(
     el('div', { class: 'fila entre' }, [el('h1', { text: 'Panel de administración' }), el('small', { class: 'sub', text: 'Datos de ' + fecha(r.generado) })]),
@@ -94,6 +113,7 @@ export async function vistaAdmin(raiz) {
       dato(t.actividades, 'Actividades', t.en_papelera + ' en papelera')
     ]),
     conectados,
+    reportes,
     el('div', { class: 'adm-rejilla' }, [
       barras(r.registros_dia, 'Cuentas nuevas por día (30 días)'),
       barras(r.accesos_dia, 'Usuarios que iniciaron sesión por día (30 días)'),

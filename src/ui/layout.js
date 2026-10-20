@@ -1,14 +1,15 @@
 'use strict';
 
-import { el } from '../core/util.js';
+import { el, aviso } from '../core/util.js';
 import { actual } from '../core/router.js';
 import { NOMBRE } from '../nombre.js';
 import { COLORES, colorActual, temaActual, alternarTema, fijarColor, marcaSvg } from '../core/tema.js';
 import { hayNube, usuarioActual, alCambiarUsuario, salir, esAdmin } from '../core/nube.js';
 import { ir } from '../core/router.js';
+import { puedeInstalar, instalar, esIPhone } from '../core/instalar.js';
 
 // El tercer valor marca las pestañas que solo se ven con sesión iniciada (si la app no tiene cuentas, se ven todas).
-const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/comunidad', 'Comunidad'], ['/mis', 'Mis actividades', true], ['/listas', 'Listas', true], ['/resultados', 'Mis resultados', true]];
+const NAV = [['/', 'Inicio'], ['/funciones', 'Funciones'], ['/comunidad', 'Comunidad'], ['/mis', 'Mis actividades', true], ['/clases', 'Clases', true], ['/listas', 'Listas', true], ['/resultados', 'Mis resultados', true]];
 
 const marca = () => el('a', { class: 'logo', attrs: { href: '#/' }, html: marcaSvg() + `<span>${NOMBRE}</span>` });
 
@@ -88,7 +89,7 @@ function barraInferior() {
   const { ruta } = actual();
   const con = !hayNube || usuarioActual();
   const item = (r, t, i) => el('a', { class: 'bi-item' + (ruta === r ? ' act' : ''), attrs: { href: '#' + r }, html: ico(ICO[i]) + `<span>${t}</span>` });
-  const extra = [['/funciones', 'Funciones'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados'], ['/perfil', 'Mi perfil']];
+  const extra = [['/funciones', 'Funciones'], ['/clases', 'Clases'], ['/listas', 'Listas'], ['/resultados', 'Mis resultados'], ['/perfil', 'Mi perfil']];
   const hoja = el('div', { class: 'bi-hoja', attrs: { hidden: true } }, extra.map(([r, t]) => el('a', { class: ruta === r ? 'act' : '', text: t, attrs: { href: '#' + r } })));
   const mas = el('button', { class: 'bi-item' + (extra.some(([r]) => r === ruta) ? ' act' : ''), attrs: { type: 'button', 'aria-label': 'Más opciones' }, html: ico(ICO.mas) + '<span>Más</span>', on: { click: (e) => { e.stopPropagation(); hoja.hidden = !hoja.hidden; } } });
   const cerrar = () => { if (!hoja.isConnected) document.removeEventListener('click', cerrar); else hoja.hidden = true; };
@@ -101,11 +102,29 @@ function barraInferior() {
   ]);
 }
 
+// Botón "Instalar app": aparece solo si el navegador lo permite (o en iPhone, con instrucciones).
+function botonInstalar() {
+  const b = el('button', { class: 'enlace-btn pie-instalar', attrs: { type: 'button' }, text: '⬇ Instalar app', on: { click: async () => {
+    if (esIPhone()) { aviso('En Safari pulsa Compartir y luego "Añadir a pantalla de inicio".', 7000); return; }
+    await instalar();
+  } } });
+  const act = () => { if (!b.isConnected) window.removeEventListener('recreo-instalable', act); else b.hidden = !puedeInstalar(); };
+  b.hidden = !puedeInstalar();
+  window.addEventListener('recreo-instalable', act);
+  return b;
+}
+
 export function pie() {
   return el('footer', { class: 'pie' }, [
     marca(), el('span', { text: 'Actividades interactivas e imprimibles para el aula' }),
     el('a', { text: 'Funciones', attrs: { href: '#/funciones' } }),
-    el('a', { text: 'Crear', attrs: { href: '#/crear' } })
+    el('a', { text: 'Crear', attrs: { href: '#/crear' } }),
+    botonInstalar(),
+    el('nav', { class: 'pie-legal', attrs: { 'aria-label': 'Legal' } }, [['/terminos', 'Términos'], ['/privacidad', 'Privacidad'], ['/cookies', 'Cookies']].map(([r, t]) => el('a', { text: t, attrs: { href: '#' + r } }))),
+    el('div', { class: 'pie-credito' }, [
+      el('span', { text: 'Creado por el equipo de Escuela Virtual del Área de Educación del Comité de Cafeteros' }),
+      el('small', { text: 'Alejandro Osorio Loaiza' })
+    ])
   ]);
 }
 

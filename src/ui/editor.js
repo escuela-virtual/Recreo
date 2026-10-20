@@ -11,30 +11,10 @@ import { usuarioActual } from '../core/nube.js';
 import { opcionesIniciales } from '../juegos/ayudas.js';
 import { botonAudio } from './audio-editor.js';
 import { estiloRecordado } from './selectores.js';
+import { elegirImagen } from './imagenes.js';
+import { leerCSV } from '../core/csv.js';
 
-// ---- imágenes: se reducen a 640 px para no inflar el almacenamiento ----
-export function elegirImagen() {
-  return new Promise((ok) => {
-    const i = el('input', { attrs: { type: 'file', accept: 'image/*' } });
-    i.onchange = () => {
-      const f = i.files[0]; if (!f) return ok(null);
-      const r = new FileReader();
-      r.onload = () => {
-        const im = new Image();
-        im.onload = () => {
-          const k = Math.min(1, 640 / Math.max(im.width, im.height));
-          const c = document.createElement('canvas'); c.width = Math.round(im.width * k); c.height = Math.round(im.height * k);
-          c.getContext('2d').drawImage(im, 0, 0, c.width, c.height);
-          ok(c.toDataURL(/png|gif|webp/.test(f.type) ? 'image/png' : 'image/jpeg', 0.82));
-        };
-        im.onerror = () => ok(null); im.src = r.result;
-      };
-      r.readAsDataURL(f);
-    };
-    i.oncancel = () => ok(null);
-    i.click();
-  });
-}
+export { elegirImagen };
 
 function botonImagen(obj, clave, onCambio) {
   const b = el('button', { class: 'ed-img', attrs: { type: 'button', title: 'Añadir imagen' } });
@@ -173,8 +153,14 @@ const EDITORES = {
 // Importar texto pegado: "a<TAB>b", "a;b" o "a - b" -> filas
 function dialogoImportar(tipo, alAceptar) {
   const area = el('textarea', { attrs: { rows: 10, placeholder: tipo === 'pares' ? 'Una pareja por línea, separada con tabulación, punto y coma o guion:\nperro - dog\ngato - cat' : 'Un elemento por línea' }, style: { width: '100%' } });
+  const archivo = el('input', { attrs: { type: 'file', accept: '.csv,.tsv,.txt,text/csv,text/plain' }, on: { change: async (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    area.value = leerCSV(await f.text()).map((fila) => fila.join('\t')).join('\n');
+  } } });
   const fondo = el('div', { class: 'modal-fondo' }, [el('div', { class: 'modal' }, [
-    el('h2', { text: 'Importar texto' }), area,
+    el('h2', { text: 'Importar texto' }),
+    el('p', { class: 'sub', text: 'Pega aquí las celdas copiadas de Excel o Google Sheets, o carga un archivo CSV.' }), area,
+    el('div', { style: { marginTop: '8px' } }, [archivo]),
     el('div', { class: 'acciones' }, [
       el('button', { class: 'btn btn-claro', text: 'Cancelar', on: { click: () => fondo.remove() } }),
       el('button', { class: 'btn', text: 'Importar', on: { click: () => { alAceptar(area.value); fondo.remove(); } } })

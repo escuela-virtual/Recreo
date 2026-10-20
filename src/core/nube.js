@@ -58,6 +58,12 @@ export const entrarConCorreo = (correo, clave) => supa.auth.signInWithPassword({
 export const registrar = (correo, clave) => supa.auth.signUp({ email: correo, password: clave, options: { emailRedirectTo: base() } });
 export const recuperarClave = (correo) => supa.auth.resetPasswordForEmail(correo, { redirectTo: base() });
 export const salir = () => supa.auth.signOut();
+// Derecho de supresión: una función de servidor elimina la cuenta y todo lo asociado (en cascada).
+export async function eliminarMiCuenta() {
+  const { error } = await supa.functions.invoke('eliminar-cuenta', { method: 'POST' });
+  if (error) { let m = error.message; try { const j = await error.context.json(); if (j && j.error) m = j.error; } catch (_) { /* se usa el mensaje genérico */ } throw new Error(m); }
+  await supa.auth.signOut().catch(() => {});
+}
 export function entrarConGoogle(volverA = '/mis') {
   try { sessionStorage.setItem('recreo:volver', volverA); } catch (_) { /* sin sessionStorage: se queda en la portada */ }
   return supa.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: base() } });
@@ -111,7 +117,7 @@ const nombreAutor = () => {
 };
 const paraComunidad = (a) => { const { versiones, tarea, carpeta, papelera, jugado, ...resto } = a; return resto; };
 export async function publicarComunidad(a) {
-  const { error } = await supa.from('comunidad').upsert({ user_id: usuario.id, id: a.id, autor: nombreAutor(), titulo: a.titulo, plantilla: a.plantilla, datos: paraComunidad(a), publicado: a.modificado || Date.now() }, { onConflict: 'user_id,id' });
+  const { error } = await supa.from('comunidad').upsert({ user_id: usuario.id, id: a.id, autor: nombreAutor(), titulo: a.titulo, plantilla: a.plantilla, datos: paraComunidad(a), etiquetas: a.etiquetas || [], publicado: a.modificado || Date.now() }, { onConflict: 'user_id,id' });
   if (error) throw error;
 }
 export async function quitarDeComunidad(id, autorId) {
@@ -121,16 +127,46 @@ export async function quitarDeComunidad(id, autorId) {
   if (error) throw error;
 }
 export async function listarComunidad() {
-  const { data, error } = await supa.from('comunidad').select('user_id,id,autor,titulo,plantilla,publicado,copias').order('publicado', { ascending: false }).limit(200);
+  const { data, error } = await supa.from('comunidad').select('user_id,id,autor,titulo,plantilla,publicado,copias,etiquetas,votos,promedio,destacada').order('publicado', { ascending: false }).limit(200);
   if (error) throw error;
   return data;
 }
 export async function traerDeComunidad(autorId, id) {
-  const { data, error } = await supa.from('comunidad').select('autor,datos,user_id,id').eq('user_id', autorId).eq('id', id).maybeSingle();
+  const { data, error } = await supa.from('comunidad').select('autor,datos,user_id,id,votos,promedio,destacada').eq('user_id', autorId).eq('id', id).maybeSingle();
   if (error) throw error;
   return data;
 }
 export const contarCopia = (autorId, id) => supa.rpc('comunidad_copiada', { p_user: autorId, p_id: id });
+const orFallo = ({ data, error }) => { if (error) throw error; return data; };
+export const valorarActividad = (autorId, id, estrellas) => supa.rpc('valorar', { p_autor: autorId, p_id: id, p_estrellas: estrellas }).then(orFallo);
+export const miValoracion = (autorId, id) => supa.from('valoraciones').select('estrellas').eq('autor_id', autorId).eq('act_id', id).maybeSingle().then(orFallo).then((d) => (d ? d.estrellas : 0));
+export const destacarActividad = (autorId, id, valor) => supa.rpc('destacar', { p_autor: autorId, p_id: id, p_valor: valor }).then(orFallo);
+export const reportarActividad = (autorId, id, motivo) => supa.rpc('reportar', { p_autor: autorId, p_id: id, p_motivo: motivo }).then(orFallo);
+export const listarReportes = () => supa.from('reportes').select('id,autor_id,act_id,motivo,creada').order('creada', { ascending: false }).limit(200).then(orFallo);
+export const borrarReporte = (id) => supa.from('reportes').delete().eq('id', id).then(orFallo);
+
+// ---- Clases, tareas y entregas ----
+const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // sin 0/O/1/I para que se lean bien
+const aleatorio = (n, alfabeto) => Array.from(crypto.getRandomValues(new Uint8Array(n)), (b) => alfabeto[b % alfabeto.length]).join('');
+async function conReintento(fn) { // el código/id es aleatorio: si choca con otro (23505) se vuelve a intentar
+  for (let i = 0; i < 5; i++) { const r = await fn(); if (!r.error || r.error.code !== '23505') return orFallo(r); }
+  throw new Error('No se pudo generar un código único. Inténtalo de nuevo.');
+}
+export const listarClases = () => supa.from('clases').select('id,nombre,codigo,creada').order('creada', { ascending: false }).then(orFallo);
+export const crearClase = (nombre) => conReintento(() => supa.from('clases').insert({ nombre: nombre.trim().slice(0, 80), codigo: aleatorio(6, ALFABETO) }).select('id,nombre,codigo,creada').single());
+export const borrarClase = (id) => supa.from('clases').delete().eq('id', id).then(orFallo);
+export const listarTareas = () => supa.from('tareas').select('id,titulo,plantilla,clase_id,limite,cerrada,creada').order('creada', { ascending: false }).then(orFallo);
+export const crearTarea = (act, { claseId = null, limite = null } = {}) => conReintento(() => supa.from('tareas').insert({
+  id: aleatorio(10, 'abcdefghijkmnpqrstuvwxyz23456789'), clase_id: claseId, titulo: act.titulo, plantilla: act.plantilla, limite, datos: paraComunidad(act)
+}).select('id').single()).then((d) => d.id);
+export const cambiarTarea = (id, cambios) => supa.from('tareas').update(cambios).eq('id', id).then(orFallo);
+export const borrarTarea = (id) => supa.from('tareas').delete().eq('id', id).then(orFallo);
+export const entregasDe = (tareaIds) => supa.from('entregas').select('id,tarea_id,nombre,puntos,aciertos,errores,segundos,creada').in('tarea_id', tareaIds).order('creada', { ascending: false }).limit(5000).then(orFallo);
+export const borrarEntrega = (id) => supa.from('entregas').delete().eq('id', id).then(orFallo);
+// Lado del alumno (sin cuenta): solo funciones públicas.
+export const obtenerTarea = (id) => supa.rpc('obtener_tarea', { p_id: id }).then(orFallo);
+export const entregarTarea = (id, r) => supa.rpc('entregar_tarea', { p_tarea: id, p_nombre: r.nombre, p_puntos: r.puntos, p_aciertos: r.aciertos, p_errores: r.errores, p_segundos: r.segundos }).then(orFallo);
+export const tareasDeClase = (codigo) => supa.rpc('tareas_de_clase', { p_codigo: codigo }).then(orFallo);
 
 // ---- Actividades en la nube ----
 const sinHistorial = (a) => { const { versiones, ...resto } = a; return resto; }; // el historial se queda en el dispositivo (pesa mucho)

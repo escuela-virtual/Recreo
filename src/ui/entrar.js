@@ -23,6 +23,8 @@ export async function vistaEntrar(raiz) {
     const correo = el('input', { attrs: { type: 'text', inputmode: 'email', autocomplete: 'email', placeholder: 'tucorreo@ejemplo.com' } });
     const clave = el('input', { attrs: { type: 'password', autocomplete: modo === 'entrar' ? 'current-password' : 'new-password', placeholder: modo === 'entrar' ? 'Tu contraseña' : 'Mínimo 6 caracteres' } });
     const msg = el('p', { class: 'acceso-msg', attrs: { role: 'alert' } });
+    const acepto = el('input', { attrs: { type: 'checkbox' } });
+    const legal = el('label', { class: 'chk acceso-legal' }, [acepto, el('span', {}, [' Acepto los ', el('a', { text: 'términos de uso', attrs: { href: '#/terminos', target: '_blank' } }), ' y la ', el('a', { text: 'política de privacidad', attrs: { href: '#/privacidad', target: '_blank' } }), '.'])]);
     const ocupado = (v) => { boton.disabled = v; google.disabled = v; };
     const decir = (t, ok = false) => { msg.textContent = t; msg.className = 'acceso-msg' + (ok ? ' ok' : ''); };
 
@@ -31,6 +33,7 @@ export async function vistaEntrar(raiz) {
       const c = correo.value.trim();
       if (!/^\S+@\S+\.\S+$/.test(c)) return decir('Escribe un correo válido.');
       if (clave.value.length < 6) return decir('La contraseña debe tener al menos 6 caracteres.');
+      if (modo === 'crear' && !acepto.checked) return decir('Para crear la cuenta debes aceptar los términos y la política de privacidad.');
       ocupado(true);
       try {
         if (modo === 'entrar') {
@@ -60,12 +63,13 @@ export async function vistaEntrar(raiz) {
       el('h2', { text: modo === 'entrar' ? 'Bienvenido de nuevo' : 'Crea tu cuenta' }),
       el('p', { class: 'sub', text: 'Con una cuenta tus actividades se guardan en la nube y las tienes en cualquier dispositivo.' }),
       google,
+      el('small', { class: 'sub', html: 'Al continuar con Google aceptas los <a href="#/terminos" target="_blank">términos</a> y la <a href="#/privacidad" target="_blank">política de privacidad</a>.' }),
       ajustes.google ? '' : el('small', { class: 'sub', text: 'El acceso con Google todavía no está activado en este sitio.' }),
       el('div', { class: 'acceso-o' }, [el('span', { text: 'o con tu correo' })]),
       el('form', { class: 'acceso-form', attrs: { novalidate: true }, on: { submit: enviar } }, [
         el('label', { class: 'campo', text: 'Correo' }), correo,
         el('label', { class: 'campo', text: 'Contraseña' }), clave,
-        msg, boton,
+        modo === 'crear' ? legal : '', msg, boton,
         modo === 'entrar' ? el('button', { class: 'enlace-btn', attrs: { type: 'button' }, text: '¿Olvidaste tu contraseña?', on: { click: async () => {
           const c = correo.value.trim();
           if (!/^\S+@\S+\.\S+$/.test(c)) return decir('Escribe tu correo arriba y vuelve a pulsar.');

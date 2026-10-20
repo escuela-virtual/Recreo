@@ -85,6 +85,7 @@ export function panelConfig(plantilla, act, alAplicar) {
     GRUPOS.forEach(([g, titulo]) => {
       const lista = specs.filter((s) => (s.grupo || 'modo') === g).map(control);
       if (g === 'maestria' && plantilla.revision) lista.push(el('label', { class: 'chk cfg-fila' }, [el('input', { attrs: { type: 'checkbox' }, checked: !!borrador.mostrarRespuestas, on: { change: (e) => { borrador.mostrarRespuestas = e.target.checked; cambio(); } } }), ' Mostrar respuestas al final']));
+      if (g === 'formato') lista.push(el('label', { class: 'chk cfg-fila' }, [el('input', { attrs: { type: 'checkbox' }, checked: !!borrador.voz, on: { change: (e) => { borrador.voz = e.target.checked; cambio(); } } }), ' Botón para leer el texto en voz alta (voz del dispositivo)']));
       if (g === 'anti') lista.push(el('label', { class: 'chk cfg-fila' }, [el('input', { attrs: { type: 'checkbox' }, checked: !!borrador.borroso, on: { change: (e) => { borrador.borroso = e.target.checked; cambio(); } } }), ' Pantalla borrosa cuando no hay actividad en curso']));
       if (lista.length) raiz.append(seccion(titulo, lista));
     });

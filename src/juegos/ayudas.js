@@ -2,6 +2,7 @@
 
 import { el } from '../core/util.js';
 import { pref } from '../core/almacen.js';
+import { hablar, vozActiva } from '../core/voz.js';
 
 // Reproduce un audio (data URL); uno a la vez.
 let sonando = null;
@@ -16,7 +17,8 @@ export function celda(t, img, clase = '', aud = null) {
   return el('div', { class: 'celda ' + clase }, [
     img ? el('img', { attrs: { src: img, alt: '', draggable: 'false' } }) : null,
     t ? el('span', { text: t }) : null,
-    aud ? el('button', { class: 'celda-aud', attrs: { type: 'button', title: 'Escuchar' }, text: '\u{1F50A}', on: { click: (e) => { e.stopPropagation(); reproducir(aud); }, pointerdown: (e) => e.stopPropagation() } }) : null
+    aud ? el('button', { class: 'celda-aud', attrs: { type: 'button', title: 'Escuchar' }, text: '\u{1F50A}', on: { click: (e) => { e.stopPropagation(); reproducir(aud); }, pointerdown: (e) => e.stopPropagation() } })
+      : t && vozActiva() ? el('button', { class: 'celda-aud', attrs: { type: 'button', title: 'Leer en voz alta' }, text: '\u{1F50A}', on: { click: (e) => { e.stopPropagation(); hablar(t); }, pointerdown: (e) => e.stopPropagation() } }) : null
   ]);
 }
 

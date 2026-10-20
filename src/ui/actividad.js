@@ -5,7 +5,7 @@ import { pagina } from './layout.js';
 import { plantillaPorId } from '../plantillas.js';
 import { montarEscenario } from '../core/escenario.js';
 import { contenidoParaJugar, cuenta } from '../core/contenido.js';
-import { actividades, resultados } from '../core/almacen.js';
+import { actividades, resultados, pref } from '../core/almacen.js';
 import { opcionesIniciales } from '../juegos/ayudas.js';
 import { panelPlantillas, panelEstilo, panelConfig } from './selectores.js';
 import { ir } from '../core/router.js';
@@ -13,7 +13,8 @@ import { compartir, incrustar, imprimir, definirTarea } from './acciones.js';
 import { decodificar, paquete } from '../core/codec.js';
 import { EJEMPLOS } from '../datos/ejemplos.js';
 import { copiarActividad } from './mis.js';
-import { traerDeComunidad, contarCopia } from '../core/nube.js';
+import { traerDeComunidad, contarCopia, obtenerTarea, entregarTarea, esAdmin } from '../core/nube.js';
+import { barraSocial } from './comunidad.js';
 import { leerListas, urlItem, titulosDe, tarjetaLista } from './listas.js';
 
 const conDefectos = (a) => {
@@ -46,6 +47,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
       alTerminar: async (r) => {
         const reg = { id: uid(), actId: act.tarea ? act.tarea.id : act.id, titulo: act.titulo, plantilla: plantilla.id, fecha: Date.now(), ...r };
         await resultados.guardar(reg); pintarTabla();
+        if (act.tarea) { pref.guardar('alumno', r.nombre); if (act.tarea.nube) reg.enviado = await entregarTarea(act.tarea.id, reg).catch(() => false); }
         return reg;
       }
     });
@@ -53,7 +55,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
 
   function cambiarPlantilla(p) {
     plantilla = p; act.plantilla = p.id;
-    const comunes = ['cronometro', 'tiempo', 'borroso'];
+    const comunes = ['cronometro', 'tiempo', 'borroso', 'voz'];
     act.opciones = { ...opcionesIniciales(p), ...Object.fromEntries(Object.entries(act.opciones || {}).filter(([k]) => comunes.includes(k) || (p.opciones || []).some((o) => o.k === k))) };
     guardar(); montar(); pintarLateral(); pintarPestanas();
   }
@@ -96,7 +98,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
   }
 
   const aviso_ajena = !propia ? el('div', { class: 'aviso-ajena' }, [
-    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' : origen ? `Actividad de la comunidad, creada por ${origen.autor}.` : 'Esta actividad es un ejemplo o te la han compartido.' }),
+    el('span', { text: act.tarea ? 'Esta es una tarea. Escribe tu nombre y pulsa INICIAR.' + (act.tarea.limite ? ' Fecha límite: ' + new Date(act.tarea.limite).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) + '.' : '') : origen ? `Actividad de la comunidad, creada por ${origen.autor}.` : 'Esta actividad es un ejemplo o te la han compartido.' }),
     el('button', { class: 'btn btn-mini', text: 'Guardar una copia para editarla', on: { click: async () => { const c = await copiarActividad(conDefectos({ ...paquete(act), id: uid() })); if (origen) origen.alCopiar(); aviso('Copia guardada en Mis actividades'); ir('/editar/' + c.id); } } })
   ]) : null;
 
@@ -113,6 +115,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
     el('div', { class: 'col-juego' }, [
       barraLista,
       aviso_ajena,
+      origen && origen.barra ? origen.barra : null,
       el('div', { class: 'tarjeta tarjeta-juego' }, [
         zonaJuego,
         el('div', { class: 'info' }, [
@@ -157,6 +160,17 @@ export function vistaEjemplo(raiz, params, consulta) {
   return construir(raiz, conDefectos(JSON.parse(JSON.stringify(e))), { modo: 'ajena', consulta });
 }
 
+// Tarea con enlace corto (/t/:id): el alumno entra sin cuenta y su resultado se envía al profesor.
+export async function vistaTarea(raiz, params) {
+  const aviso404 = (titulo, texto) => { const m = pagina(raiz); m.append(el('div', { class: 'tarjeta' }, [el('h2', { text: titulo }), el('p', { class: 'sub', text: texto })])); };
+  let t = null;
+  try { t = await obtenerTarea(params.id); } catch (_) { return aviso404('No se pudo abrir la tarea', 'Revisa tu conexión a internet e inténtalo de nuevo.'); }
+  if (!t || !plantillaPorId(t.plantilla)) return aviso404('Tarea no encontrada', 'El enlace no es correcto o tu profesor eliminó la tarea.');
+  if (t.cerrada || (t.limite && Date.now() > t.limite)) return aviso404('Esta tarea ya está cerrada', t.cerrada ? 'Tu profesor la cerró y ya no recibe resultados.' : 'Se pasó la fecha límite para entregarla.');
+  const act = conDefectos({ ...t.datos, id: 'tarea-' + t.id, publica: false, enComunidad: false, tarea: { id: t.id, titulo: t.titulo, nube: true, limite: t.limite, nombre: pref.leer('alumno', '') } });
+  return construir(raiz, act, { modo: 'ajena' });
+}
+
 export async function vistaComunidadActividad(raiz, params) {
   let fila = null;
   try { fila = await traerDeComunidad(params.autor, params.id); } catch (_) { /* se muestra como no encontrada */ }
@@ -166,7 +180,8 @@ export async function vistaComunidadActividad(raiz, params) {
     return;
   }
   const act = conDefectos({ ...fila.datos, id: 'com-' + fila.id, publica: false, enComunidad: false });
-  return construir(raiz, act, { modo: 'ajena', origen: { autor: fila.autor, alCopiar: () => contarCopia(fila.user_id, fila.id) } });
+  const barra = barraSocial(fila, await esAdmin());
+  return construir(raiz, act, { modo: 'ajena', origen: { autor: fila.autor, alCopiar: () => contarCopia(fila.user_id, fila.id), barra } });
 }
 
 async function leer(data) {

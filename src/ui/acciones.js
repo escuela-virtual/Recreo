@@ -4,6 +4,7 @@ import { el, aviso, escapar, barajar } from '../core/util.js';
 import { codificar, sinImagenes, paquete, urlBase } from '../core/codec.js';
 import { contenidoParaJugar } from '../core/contenido.js';
 import { NOMBRE } from '../nombre.js';
+import { hayNube, usuarioActual, listarClases, crearTarea } from '../core/nube.js';
 
 function modal(titulo, cuerpo, acciones = []) {
   const fondo = el('div', { class: 'modal-fondo', on: { click: (e) => { if (e.target === fondo) fondo.remove(); } } }, [
@@ -62,15 +63,52 @@ export async function incrustar(act) {
   ], [el('button', { class: 'btn', text: 'Copiar código', on: { click: () => copiar(area.value) } })]);
 }
 
-export async function definirTarea(act) {
+// Sin cuenta: el enlace lleva la actividad dentro y el alumno devuelve un código que el profesor pega a mano.
+async function definirTareaLocal(act) {
   const campo = el('input', { attrs: { type: 'text', readonly: true }, on: { focus: (e) => e.target.select() } });
   const tarea = { id: act.id, titulo: act.titulo, creada: Date.now() };
   campo.value = await enlaceDe(act, { imagenes: false, tarea });
   modal('Definir tarea', [
     el('p', { text: 'Envía este enlace a tus alumnos. Al abrirlo escribirán su nombre y jugarán la actividad.' }),
     campo,
-    el('p', { class: 'sub', html: 'Al terminar, cada alumno recibe un <b>código de resultado</b> que te entrega. Pégalo en <a href="#/resultados">Mis resultados</a> para registrarlo.' })
+    el('p', { class: 'sub', html: 'Al terminar, cada alumno recibe un <b>código de resultado</b> que te entrega. Pégalo en <a href="#/resultados">Mis resultados</a> para registrarlo.' }),
+    hayNube ? el('p', { class: 'sub', html: '<b>¿Quieres recibir los resultados automáticamente?</b> <a href="#/entrar">Inicia sesión</a> y la tarea quedará guardada con sus resultados en tiempo real.' }) : null
   ], [el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(campo.value) } })]);
+}
+
+// Con cuenta: la tarea se guarda en la nube, el alumno entra con un enlace corto y su resultado llega solo.
+export async function definirTarea(act) {
+  if (!hayNube || !usuarioActual()) return definirTareaLocal(act);
+  let clases = [];
+  try { clases = await listarClases(); } catch (_) { /* sin clases: se puede crear igual */ }
+  const sel = el('select', {}, [el('option', { text: 'Sin clase (solo con el enlace)', attrs: { value: '' } }), ...clases.map((c) => el('option', { text: c.nombre + ' · ' + c.codigo, attrs: { value: c.id } }))]);
+  const limite = el('input', { attrs: { type: 'datetime-local' } });
+  const salida = el('div');
+  const crear = el('button', { class: 'btn', text: 'Crear tarea' });
+  crear.onclick = async () => {
+    crear.disabled = true;
+    try {
+      const id = await crearTarea(act, { claseId: sel.value || null, limite: limite.value ? new Date(limite.value).getTime() : null });
+      const enlace = `${urlBase()}#/t/${id}`;
+      const campo = el('input', { attrs: { type: 'text', readonly: true }, value: enlace, on: { focus: (e) => e.target.select() } });
+      salida.replaceChildren(
+        el('p', { html: '<b>¡Tarea creada!</b> Comparte este enlace con tus alumnos:' }), campo,
+        el('div', { class: 'fila', style: { marginTop: '10px' } }, [
+          el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(enlace) } }),
+          el('a', { class: 'btn btn-claro', text: 'Ver resultados', attrs: { href: '#/tarea/' + id } })
+        ]),
+        el('p', { class: 'sub', text: 'Cada alumno escribe su nombre, juega, y su resultado aparece en tu página de resultados sin que tenga que enviarte nada.' })
+      );
+      crear.remove();
+    } catch (e) { crear.disabled = false; aviso('No se pudo crear la tarea: ' + (e.message || e)); }
+  };
+  modal('Definir tarea', [
+    el('p', { class: 'sub', text: 'Los alumnos no necesitan cuenta: abren el enlace, escriben su nombre y juegan.' }),
+    el('label', { class: 'campo', text: 'Clase' }), sel,
+    el('label', { class: 'campo', text: 'Fecha límite (opcional)', style: { marginTop: '10px' } }), limite,
+    el('p', { class: 'sub', text: 'La tarea guarda una copia de la actividad tal como está ahora; si la editas después, la tarea no cambia.' }),
+    salida
+  ], [crear]);
 }
 
 // ---------------------------------------------------------------------------

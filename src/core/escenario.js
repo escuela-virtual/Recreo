@@ -4,6 +4,7 @@ import { el, limpiar, fmtTiempo } from './util.js';
 import { aplicarEstilo } from './estilos.js';
 import * as sonido from './audio.js';
 import { codificar } from './codec.js';
+import { fijarVoz } from './voz.js';
 
 // ---------------------------------------------------------------------------
 // Escenario: el "reproductor" que envuelve a cualquier plantilla. Pinta la
@@ -37,7 +38,7 @@ export function montarEscenario(cont, { plantilla, titulo, tipo, datos, opciones
   let juego = null;
   let terminado = false;
   let puntos = 0, aciertos = 0, errores = 0, vidas = 0;
-  let t0 = 0, relojId = null, restante = 0, nombreTarea = '', revisiones = [];
+  let t0 = 0, relojId = null, restante = 0, nombreTarea = (tarea && tarea.nombre) || '', revisiones = [];
 
   const elTiempo = el('span', { class: 'esc-stat esc-tiempo', attrs: { hidden: true } });
   const elVidas = el('span', { class: 'esc-stat', attrs: { hidden: true } });
@@ -139,7 +140,7 @@ export function montarEscenario(cont, { plantilla, titulo, tipo, datos, opciones
   }
 
   function arrancar() {
-    sonido.desbloquear(); sonido.clic();
+    sonido.desbloquear(); sonido.clic(); fijarVoz(opc.voz);
     capa.hidden = true; barra.hidden = false;
     terminado = false; puntos = aciertos = errores = 0; vidas = opc.vidas || 0;
     pintarStats(); elProgreso.textContent = '';
@@ -169,10 +170,11 @@ export function montarEscenario(cont, { plantilla, titulo, tipo, datos, opciones
       guardar.disabled = true; guardar.textContent = '✓ Guardado'; nombre.disabled = true;
     } } });
     if (tarea && alTerminar) {
-      Promise.resolve(alTerminar({ ...res, nombre: nombreTarea })).then(async () => {
-        const c = await codificar({ t: tarea.id, ti: titulo, n: nombreTarea, p: puntos, a: aciertos, e: errores, s: segs, f: Date.now() });
+      Promise.resolve(alTerminar({ ...res, nombre: nombreTarea })).then(async (reg) => {
         codigo.hidden = false;
-        codigo.append(el('b', { text: 'Tu código de resultado (entrégaselo a tu profesor):' }), el('textarea', { attrs: { readonly: true, rows: 3 }, value: c, on: { focus: (ev) => ev.target.select() } }),
+        if (reg && reg.enviado) { codigo.append(el('b', { text: '✔ Tu resultado se envió a tu profesor.' })); return; }
+        const c = await codificar({ t: tarea.id, ti: titulo, n: nombreTarea, p: puntos, a: aciertos, e: errores, s: segs, f: Date.now() });
+        codigo.append(el('b', { text: tarea.nube ? 'No se pudo enviar tu resultado. Entrega este código a tu profesor:' : 'Tu código de resultado (entrégaselo a tu profesor):' }), el('textarea', { attrs: { readonly: true, rows: 3 }, value: c, on: { focus: (ev) => ev.target.select() } }),
           el('button', { class: 'esc-btn-grande', text: 'Copiar código', on: { click: () => navigator.clipboard && navigator.clipboard.writeText(c) } }));
       });
     }
@@ -208,7 +210,7 @@ export function montarEscenario(cont, { plantilla, titulo, tipo, datos, opciones
     reiniciar,
     destruir() {
       window.removeEventListener('blur', alPerder); window.removeEventListener('focus', alVolver); document.removeEventListener('visibilitychange', alVisibilidad);
-      clearInterval(relojId);
+      clearInterval(relojId); fijarVoz(false);
       if (juego && juego.destruir) { try { juego.destruir(); } catch (_) {} }
       raiz.remove();
     }

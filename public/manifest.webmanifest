@@ -1,0 +1,22 @@
+{
+  "name": "Recreatic",
+  "short_name": "Recreatic",
+  "description": "Crea y juega actividades interactivas e imprimibles para el aula.",
+  "lang": "es",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#f7f6ff",
+  "theme_color": "#6c4ef2",
+  "icons": [
+    { "src": "iconos/icono-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "iconos/icono-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Crear actividad", "url": "./#/crear" },
+    { "name": "Comunidad", "url": "./#/comunidad" },
+    { "name": "Mis actividades", "url": "./#/mis" }
+  ]
+}
