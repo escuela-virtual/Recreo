@@ -4,17 +4,15 @@ import { el, aviso } from '../core/util.js';
 import { pagina } from './layout.js';
 import { ir } from '../core/router.js';
 import { usuarioActual, salir, eliminarMiCuenta } from '../core/nube.js';
-import { actividades, resultados } from '../core/almacen.js';
+import { actividades } from '../core/almacen.js';
+import { descargarTodasWord } from './acciones.js';
 import { panelApariencia } from './apariencia.js';
 
-// Derecho de acceso: una copia de lo que la persona ha creado.
+// Derecho de acceso: todas las actividades de la persona en un documento de Word que cualquiera sabe abrir.
 async function descargarDatos() {
-  const u = usuarioActual();
-  const datos = { exportado: new Date().toISOString(), cuenta: { correo: u.email }, actividades: (await actividades.todos()).map(({ versiones, ...a }) => a), resultados: await resultados.todos() };
-  const a = document.createElement('a');
-  a.href = URL.createObjectURL(new Blob([JSON.stringify(datos, null, 1)], { type: 'application/json' }));
-  a.download = 'mis-datos-recreatic.json'; a.click();
-  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  const lista = (await actividades.todos()).filter((a) => !a.papelera);
+  if (!lista.length) { aviso('Todavía no tienes actividades para descargar.'); return; }
+  descargarTodasWord(lista, 'Mis actividades de Recreatic');
 }
 
 // Derecho de supresión: elimina la cuenta y todo lo que guardó en la nube.
@@ -46,9 +44,9 @@ export function vistaPerfil(raiz) {
     ]),
     el('div', { class: 'tarjeta' }, [
       el('h2', { text: 'Tus datos' }),
-      el('p', { class: 'sub', html: 'Tienes derecho a llevarte una copia de lo que has creado y a eliminar tu cuenta. Más detalles en la <a href="#/privacidad">Política de privacidad</a>.' }),
+      el('p', { class: 'sub', html: 'Puedes llevarte todas tus actividades en un documento de Word y eliminar tu cuenta cuando quieras. Más detalles en la <a href="#/privacidad">Política de privacidad</a>.' }),
       el('div', { class: 'fila' }, [
-        el('button', { class: 'btn btn-claro', attrs: { type: 'button' }, text: 'Descargar mis datos', on: { click: descargarDatos } }),
+        el('button', { class: 'btn btn-claro', attrs: { type: 'button' }, text: 'Descargar mis actividades (Word)', on: { click: descargarDatos } }),
         el('button', { class: 'btn btn-peligro', attrs: { type: 'button' }, text: 'Eliminar mi cuenta', on: { click: eliminar } })
       ])
     ]),

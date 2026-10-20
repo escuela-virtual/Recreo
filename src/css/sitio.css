@@ -135,3 +135,8 @@ textarea { resize: vertical; min-height: 44px; }
 @media (min-width: 801px) and (max-width: 1500px) { .lema { display: none; } .cab nav { gap: 16px; } .cab nav a { font-size: 16px; } .cab { gap: 16px; padding: 0 18px; } }
 @media (min-width: 801px) and (max-width: 1150px) { .cab nav { gap: 11px; } .cab nav a { font-size: 14px; } .logo { font-size: 24px; } }
 @media (min-width: 801px) and (max-width: 1100px) { .cab { padding: 0 12px; gap: 10px; } .cab nav { gap: 8px; } .cab nav a { font-size: 13.5px; } .cab-crear { padding: 8px 12px; font-size: 14px; } .cab-acc { gap: 5px; } .ico-btn { width: 34px; height: 34px; } .logo { font-size: 22px; } .logo svg { width: 30px; height: 30px; } }
+
+/* Descargar actividad */
+.descargas { display: grid; gap: 12px; margin-top: 10px; }
+.descargas .btn { flex-direction: column; align-items: center; gap: 2px; padding: 16px 20px; text-align: center; }
+.descargas .btn small { font-weight: 400; opacity: .8; }

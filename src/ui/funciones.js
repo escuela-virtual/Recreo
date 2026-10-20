@@ -16,16 +16,16 @@ const SECCIONES = () => [
     ['Si creaste unas Parejas con nombres de formas, conviértelas en Tarjetas flash, un Cuestionario o una Sopa de letras con exactamente el mismo contenido.',
      'Es ideal para diferenciar y reforzar: el mismo contenido en formatos distintos según el grupo.']],
   ['✎', 'Editar cualquier actividad', 'Adapta el contenido a tu clase y a tu forma de enseñar.',
-    ['Copia cualquiera de los ejemplos y modifícala a tu gusto. Tus actividades se guardan en este navegador y se pueden exportar a un archivo.']],
+    ['Copia cualquiera de los ejemplos y modifícala a tu gusto. Tus actividades se guardan solas; con una cuenta las tienes en cualquier dispositivo, y puedes descargarlas en Word o PDF.']],
   ['🎨', 'Estilos y opciones visuales', `${ESTILOS.length} estilos visuales, fuentes y opciones de juego.`,
     ['Cada estilo cambia colores, fondos y tipografía. También puedes configurar un temporizador, las vidas o el orden aleatorio.',
      'Hay fuentes pensadas para la lectura, incluida una apta para dislexia, y un estilo de alta legibilidad.']],
   ['🌐', 'Compartir con otros profesores', 'Comparte por enlace o por archivo, sin cuentas ni servidores.',
-    ['El enlace lleva el contenido dentro: quien lo abra puede jugar y guardar una copia para editarla. También puedes descargar la actividad como archivo.']],
+    ['El enlace lleva el contenido dentro: quien lo abra puede jugar y guardar una copia para editarla. También puedes descargar la actividad en Word o en PDF.']],
   ['</>', 'Incrustar en un sitio web', 'Pega un fragmento de código y juega dentro de tu blog o aula virtual.',
     ['Funciona como incrustar un vídeo: copias el código HTML (iframe) y lo pegas en tu página.']],
   ['✔', 'Tareas para alumnos', 'Envía un enlace y recoge los resultados de cada alumno.',
-    ['El alumno escribe su nombre, juega y recibe un código de resultado. Lo pegas en "Mis resultados" y ves la tabla con puntos, errores y tiempo; también la puedes descargar en CSV.']]
+    ['El alumno escribe su nombre, juega y recibe un código de resultado. Lo pegas en "Mis resultados" y ves la tabla con puntos, errores y tiempo; también la puedes descargar para abrirla en Excel.']]
 ];
 
 export function vistaFunciones(raiz) {

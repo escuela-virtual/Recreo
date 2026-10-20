@@ -9,7 +9,7 @@ import { actividades, resultados, pref } from '../core/almacen.js';
 import { opcionesIniciales } from '../juegos/ayudas.js';
 import { panelPlantillas, panelEstilo, panelConfig } from './selectores.js';
 import { ir } from '../core/router.js';
-import { compartir, incrustar, imprimir, definirTarea } from './acciones.js';
+import { compartir, incrustar, imprimir, definirTarea, descargarActividad } from './acciones.js';
 import { decodificar, paquete } from '../core/codec.js';
 import { EJEMPLOS } from '../datos/ejemplos.js';
 import { copiarActividad } from './mis.js';
@@ -131,6 +131,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
             el('div', { class: 'fila acc' }, [
               propia ? el('a', { class: 'enlace-btn', text: '✎ Editar contenido…', attrs: { href: '#/editar/' + act.id } }) : null,
               el('button', { class: 'enlace-btn', text: '🖨 Imprimir', on: { click: () => imprimir(act, plantilla) } }),
+              el('button', { class: 'enlace-btn', text: '⬇ Descargar', on: { click: () => descargarActividad(act) } }),
               act.tarea ? null : el('button', { class: 'enlace-btn', text: '</> Incrustar', on: { click: () => incrustar(act) } })
             ])
           ])

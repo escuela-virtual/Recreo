@@ -4,6 +4,7 @@ import { el, aviso, escapar, barajar } from '../core/util.js';
 import { codificar, sinImagenes, paquete, urlBase } from '../core/codec.js';
 import { contenidoParaJugar } from '../core/contenido.js';
 import { NOMBRE } from '../nombre.js';
+import { plantillaPorId } from '../plantillas.js';
 import { hayNube, usuarioActual, listarClases, crearTarea } from '../core/nube.js';
 
 function modal(titulo, cuerpo, acciones = []) {
@@ -33,22 +34,17 @@ export async function compartir(act) {
   const pintar = async () => {
     const url = await enlaceDe(act, { imagenes: conImg });
     campo.value = url;
-    nota.textContent = `Enlace de ${url.length.toLocaleString('es')} caracteres. El contenido viaja dentro del propio enlace: no se sube a ningún servidor.`;
+    nota.textContent = 'El enlace lleva la actividad dentro, por eso es largo. Funciona sin iniciar sesión.';
     return url;
   };
-  const chk = tieneImagenes(act) ? el('label', { class: 'chk' }, [el('input', { attrs: { type: 'checkbox' }, on: { change: (e) => { conImg = e.target.checked; pintar(); } } }), ' Incluir imágenes y audios (el enlace será mucho más largo)']) : null;
+  const chk = tieneImagenes(act) ? el('label', { class: 'chk' }, [el('input', { attrs: { type: 'checkbox' }, on: { change: (e) => { conImg = e.target.checked; pintar(); } } }), ' Incluir imágenes y audios (el enlace será más largo)']) : null;
   modal('Compartir actividad', [
     el('p', { text: 'Cualquiera con este enlace podrá jugar tu actividad y guardar una copia para editarla.' }), campo, chk, nota
   ], [
-    el('button', { class: 'btn btn-claro', text: 'Descargar archivo', on: { click: () => descargar(act) } }),
+    el('button', { class: 'btn btn-claro', text: 'Descargar', on: { click: () => descargarActividad(act) } }),
     el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(campo.value) } })
   ]);
   await pintar();
-}
-
-export function descargar(act) {
-  const a = el('a', { attrs: { href: URL.createObjectURL(new Blob([JSON.stringify(paquete(act))], { type: 'application/json' })), download: (act.titulo || 'actividad').replace(/[^\w\- áéíóúñ]/gi, '') + '.ajuega.json' } });
-  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
 }
 
 export async function incrustar(act) {
@@ -142,16 +138,49 @@ ol.q>li{margin-bottom:14px}ul.op{list-style:none;padding-left:18px;margin:4px 0}
 .pie{margin-top:30px;color:#888;font-size:12px}table.cw{border-collapse:collapse}table.cw td{width:28px;height:28px;border:1px solid #111;font-size:11px;position:relative;vertical-align:top}
 table.cw td.v{border:none}table.cw td sup{position:absolute;top:0;left:1px;font-size:9px}table.ws td{width:26px;height:26px;text-align:center;font-weight:700;border:none}`;
 
-export function imprimir(act, plantilla) {
+// Hoja de la actividad (HTML) lista para imprimir o convertir en documento.
+function cuerpoHoja(act, plantilla, conNombre = true) {
   const { tipo, datos } = contenidoParaJugar(plantilla, act);
-  if (!tipo || !datos) { aviso('No hay contenido suficiente para imprimir'); return; }
+  if (!tipo || !datos) return null;
   let cuerpo;
   try { cuerpo = plantilla.imprimir ? plantilla.imprimir(datos, act.opciones) : HOJAS[tipo] ? HOJAS[tipo](datos) : '<p>Sin vista imprimible</p>'; }
   catch (e) { cuerpo = `<p>No se pudo generar la hoja: ${escapar(e.message)}</p>`; }
-  const html = `<!DOCTYPE html><html lang="es"><head><meta charset="utf-8"><title>${escapar(act.titulo)}</title><style>${ESTILO_HOJA}</style></head><body>
-    <h1>${escapar(act.titulo)}</h1><p class="sub">${escapar(plantilla.nombre)} · Nombre: ____________________ Fecha: __________</p>${cuerpo}<p class="pie">${escapar(NOMBRE)}</p></body></html>`;
+  return `<h1>${escapar(act.titulo)}</h1><p class="sub">${escapar(plantilla.nombre)}${conNombre ? ' · Nombre: ____________________ Fecha: __________' : ''}</p>${cuerpo}`;
+}
+const pagina = (titulo, cuerpo, extra = '') => `<!DOCTYPE html><html lang="es" ${extra}><head><meta charset="utf-8"><title>${escapar(titulo)}</title><style>${ESTILO_HOJA}</style></head><body>${cuerpo}<p class="pie">${escapar(NOMBRE)}</p></body></html>`;
+
+export function imprimir(act, plantilla) {
+  const hoja = cuerpoHoja(act, plantilla);
+  if (!hoja) { aviso('No hay contenido suficiente para imprimir'); return; }
   const f = el('iframe', { style: 'position:fixed;width:0;height:0;border:0' });
-  f.srcdoc = html;
+  f.srcdoc = pagina(act.titulo, hoja);
   f.onload = () => { f.contentWindow.focus(); f.contentWindow.print(); setTimeout(() => f.remove(), 60000); };
   document.body.appendChild(f);
+}
+
+const nombreArchivo = (t) => (t || 'actividad').replace(/[\/:*?"<>|]/g, '').trim().slice(0, 60) || 'actividad';
+// Documento de Word (.doc): se abre con Word, Google Docs o LibreOffice y se puede editar.
+function guardarWord(titulo, cuerpo) {
+  const html = pagina(titulo, cuerpo, 'xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"');
+  const a = el('a', { attrs: { href: URL.createObjectURL(new Blob(['﻿', html], { type: 'application/msword' })), download: nombreArchivo(titulo) + '.doc' } });
+  a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+// Varias actividades en un solo documento (para "Mis actividades" del perfil).
+export function descargarTodasWord(lista, titulo = 'Mis actividades') {
+  const hojas = lista.map((a) => { const p = plantillaPorId(a.plantilla); return p && cuerpoHoja(a, p, false); }).filter(Boolean);
+  if (!hojas.length) { aviso('No hay actividades para descargar'); return; }
+  guardarWord(titulo, hojas.join('<br clear="all" style="page-break-before:always">'));
+}
+
+// "Descargar": el usuario elige entre un documento editable (Word) o un PDF.
+export function descargarActividad(act) {
+  const plantilla = plantillaPorId(act.plantilla);
+  if (!plantilla || !cuerpoHoja(act, plantilla)) { aviso('Esta actividad aún no tiene contenido suficiente para descargar'); return; }
+  const f = modal('Descargar actividad', [
+    el('p', { class: 'sub', text: `"${act.titulo}" como una hoja lista para usar:` }),
+    el('div', { class: 'descargas' }, [
+      el('button', { class: 'btn btn-claro btn-grande', attrs: { type: 'button' }, html: '<b>Documento de Word</b><small>Para editarlo o enviarlo</small>', on: { click: () => { guardarWord(act.titulo, cuerpoHoja(act, plantilla)); f.remove(); } } }),
+      el('button', { class: 'btn btn-claro btn-grande', attrs: { type: 'button' }, html: '<b>PDF</b><small>Para imprimir o compartir</small>', on: { click: () => { f.remove(); aviso('En la ventana que se abre, elige «Guardar como PDF» como impresora.', 6500); setTimeout(() => imprimir(act, plantilla), 400); } } })
+    ])
+  ]);
 }

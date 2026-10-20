@@ -115,7 +115,7 @@ export async function vistaResultadosTarea(raiz, params) {
         el('div', { class: 'fila', style: { marginTop: '12px' } }, [
           el('button', { class: 'btn btn-mini', attrs: { type: 'button' }, text: 'Copiar enlace', on: { click: () => copiar(enlace) } }),
           el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Actualizar', on: { click: pintar } }),
-          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar CSV', on: { click: () => descargarCSV(`${t.titulo}.csv`, [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((e) => [e.nombre, e.puntos, e.aciertos, e.errores, e.segundos, new Date(e.creada).toISOString()])]) } }),
+          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar en Excel', on: { click: () => descargarCSV(`${t.titulo}.csv`, [['Nombre', 'Puntos', 'Aciertos', 'Errores', 'Segundos', 'Fecha'], ...lista.map((e) => [e.nombre, e.puntos, e.aciertos, e.errores, e.segundos, new Date(e.creada).toISOString()])]) } }),
           el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: t.cerrada ? 'Reabrir tarea' : 'Cerrar tarea', on: { click: async () => { try { await cambiarTarea(t.id, { cerrada: !t.cerrada }); pintar(); } catch (e) { aviso('No se pudo cambiar: ' + (e.message || e)); } } } }),
           el('button', { class: 'btn btn-peligro btn-mini', attrs: { type: 'button' }, text: 'Eliminar tarea', on: { click: async () => {
             if (!confirm('¿Eliminar la tarea y todos sus resultados?')) return;
@@ -165,7 +165,7 @@ export async function vistaClase(raiz, params) {
         el('p', { html: `Código de la clase: <b class="clase-codigo">${clase.codigo}</b> · Enlace para alumnos: <b>${urlBase().replace(/^https?:\/\//, '')}#/clase/${clase.codigo}</b>` }),
         el('div', { class: 'fila' }, [
           el('button', { class: 'btn btn-mini', attrs: { type: 'button' }, text: 'Copiar enlace', on: { click: () => copiar(`${urlBase()}#/clase/${clase.codigo}`) } }),
-          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar CSV', on: { click: () => descargarCSV(`${clase.nombre}.csv`, [['Alumno', ...tareas.map((t) => t.titulo), 'Total'], ...filas.map((a) => [a.nombre, ...tareas.map((t) => a.por[t.id] ?? ''), total(a)])]) } })
+          el('button', { class: 'btn btn-claro btn-mini', attrs: { type: 'button' }, text: 'Descargar en Excel', on: { click: () => descargarCSV(`${clase.nombre}.csv`, [['Alumno', ...tareas.map((t) => t.titulo), 'Total'], ...filas.map((a) => [a.nombre, ...tareas.map((t) => a.por[t.id] ?? ''), total(a)])]) } })
         ])
       ]),
       el('div', { class: 'tarjeta' }, [

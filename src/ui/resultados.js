@@ -36,7 +36,7 @@ export async function vistaResultados(raiz) {
     porAct.forEach((lista, id) => {
       cuerpo.append(el('div', { class: 'tarjeta' }, [
         el('div', { class: 'fila entre' }, [el('h3', { text: lista[0].titulo }), el('div', { class: 'fila' }, [
-          el('button', { class: 'btn btn-claro btn-mini', text: 'Descargar CSV', on: { click: () => csv(lista) } }),
+          el('button', { class: 'btn btn-claro btn-mini', text: 'Descargar en Excel', on: { click: () => csv(lista) } }),
           el('button', { class: 'btn btn-peligro btn-mini', text: 'Borrar', on: { click: async () => { if (confirm('¿Borrar estos resultados?')) { for (const r of lista) await resultados.borrar(r.id); pintar(); } } } })
         ])]),
         el('div', { class: 'tabla-scroll' }, [el('table', { class: 'tabla' }, [

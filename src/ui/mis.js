@@ -5,26 +5,8 @@ import { pagina } from './layout.js';
 import { actividades, pref } from '../core/almacen.js';
 import { plantillaPorId } from '../plantillas.js';
 import { iconoPlantilla } from './crear.js';
-import { descargar } from './acciones.js';
+import { descargarActividad } from './acciones.js';
 import { cuenta } from '../core/contenido.js';
-
-// Importa un archivo .ajuega.json (o JSON de actividad) como actividad nueva.
-export async function importarArchivo() {
-  return new Promise((ok) => {
-    const i = el('input', { attrs: { type: 'file', accept: '.json,application/json' } });
-    i.onchange = async () => {
-      const f = i.files[0]; if (!f) return ok(null);
-      try {
-        const d = JSON.parse(await f.text());
-        if (!plantillaPorId(d.plantilla) || !d.tipo || d.contenido == null) throw new Error('formato');
-        const act = { ...d, id: uid(), creado: Date.now(), modificado: Date.now(), publica: false, enComunidad: false, pubMod: null };
-        await actividades.guardar(act); ok(act);
-      } catch (_) { aviso('El archivo no es una actividad válida'); ok(null); }
-    };
-    i.oncancel = () => ok(null);
-    i.click();
-  });
-}
 
 export async function copiarActividad(base) {
   const act = { ...JSON.parse(JSON.stringify(base)), id: uid(), creado: Date.now(), modificado: Date.now(), titulo: base.titulo + ' (copia)' };
@@ -84,7 +66,7 @@ export async function vistaMis(raiz) {
         el('select', { class: 'mover', attrs: { title: 'Mover a una carpeta' }, on: { change: (e) => { guardar(a, { carpeta: e.target.value || undefined }); } } },
           [el('option', { attrs: { value: '' }, text: 'Sin carpeta' }), ...carpetas.map((c) => el('option', { attrs: { value: c, selected: a.carpeta === c }, text: c }))]),
         el('button', { class: 'btn btn-claro btn-mini', text: 'Duplicar', on: { click: async () => { await copiarActividad(a); aviso('Actividad duplicada'); cargar(); } } }),
-        el('button', { class: 'btn btn-claro btn-mini', text: '⬇', attrs: { title: 'Descargar archivo' }, on: { click: () => descargar(a) } }),
+        el('button', { class: 'btn btn-claro btn-mini', text: '⬇ Descargar', attrs: { title: 'Descargar en Word o PDF' }, on: { click: () => descargarActividad(a) } }),
         el('button', { class: 'btn btn-peligro btn-mini', text: '🗑', attrs: { title: 'Mover a la papelera' }, on: { click: () => { guardar(a, { papelera: Date.now() }); aviso('Movida a la papelera (se conserva 30 días)'); } } })
       ];
       grid.append(el('div', { class: 'mis-card' }, [
@@ -100,7 +82,6 @@ export async function vistaMis(raiz) {
     el('div', { class: 'fila entre' }, [el('h2', { text: 'Mis actividades' }), el('div', { class: 'fila' }, [
       el('button', { class: 'btn btn-claro', text: 'Nueva carpeta', on: { click: () => { const n = (prompt('Nombre de la carpeta:') || '').trim().slice(0, 40); if (!n) return; const l = carpetasGuardadas(); if (!l.includes(n)) pref.guardar('carpetas', [...l, n]); carpeta = n; papelera = false; pintar(); } } }),
       el('a', { class: 'btn btn-claro', text: 'Listas de reproducción', attrs: { href: '#/listas' } }),
-      el('button', { class: 'btn btn-claro', text: 'Importar archivo', on: { click: async () => { if (await importarArchivo()) { aviso('Actividad importada'); cargar(); } } } }),
       el('a', { class: 'btn', text: '+ Crear actividad', attrs: { href: '#/crear' } })])]),
     el('div', { class: 'fila', style: { margin: '14px 0' } }, [el('div', { style: { flex: 1, minWidth: '200px' } }, [el('input', { attrs: { type: 'search', placeholder: 'Buscar en mis actividades…' }, on: { input: (e) => { q = e.target.value; pintar(); } } })]), el('label', { class: 'sub', text: 'Ordenar por:' }), selOrden]),
     el('div', { class: 'mis-layout' }, [lateral, grid])

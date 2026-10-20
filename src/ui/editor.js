@@ -12,7 +12,7 @@ import { opcionesIniciales } from '../juegos/ayudas.js';
 import { botonAudio } from './audio-editor.js';
 import { estiloRecordado } from './selectores.js';
 import { elegirImagen } from './imagenes.js';
-import { leerCSV } from '../core/csv.js';
+import { leerTabla } from '../core/csv.js';
 
 export { elegirImagen };
 
@@ -153,14 +153,14 @@ const EDITORES = {
 // Importar texto pegado: "a<TAB>b", "a;b" o "a - b" -> filas
 function dialogoImportar(tipo, alAceptar) {
   const area = el('textarea', { attrs: { rows: 10, placeholder: tipo === 'pares' ? 'Una pareja por línea, separada con tabulación, punto y coma o guion:\nperro - dog\ngato - cat' : 'Un elemento por línea' }, style: { width: '100%' } });
-  const archivo = el('input', { attrs: { type: 'file', accept: '.csv,.tsv,.txt,text/csv,text/plain' }, on: { change: async (e) => {
+  const archivo = el('input', { attrs: { type: 'file', accept: '.xlsx,.csv,.txt' }, on: { change: async (e) => {
     const f = e.target.files[0]; if (!f) return;
-    area.value = leerCSV(await f.text()).map((fila) => fila.join('\t')).join('\n');
+    try { area.value = (await leerTabla(f)).map((fila) => fila.filter(Boolean).join('\t')).join('\n'); } catch (_) { aviso('No se pudo leer ese archivo. Prueba con un Excel (.xlsx) o un archivo de texto.'); }
   } } });
   const fondo = el('div', { class: 'modal-fondo' }, [el('div', { class: 'modal' }, [
     el('h2', { text: 'Importar texto' }),
-    el('p', { class: 'sub', text: 'Pega aquí las celdas copiadas de Excel o Google Sheets, o carga un archivo CSV.' }), area,
-    el('div', { style: { marginTop: '8px' } }, [archivo]),
+    el('p', { class: 'sub', text: 'Pega aquí las celdas copiadas de Excel o Google Sheets, o carga un archivo de Excel.' }), area,
+    el('div', { style: { marginTop: '8px' } }, [el('label', { class: 'sub', text: 'O elige un archivo de Excel (.xlsx): ' }), archivo]),
     el('div', { class: 'acciones' }, [
       el('button', { class: 'btn btn-claro', text: 'Cancelar', on: { click: () => fondo.remove() } }),
       el('button', { class: 'btn', text: 'Importar', on: { click: () => { alAceptar(area.value); fondo.remove(); } } })
