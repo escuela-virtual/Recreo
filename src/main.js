@@ -10,7 +10,7 @@ import { ventanaBienvenida } from './ui/apariencia.js';
 import { vistaPerfil } from './ui/perfil.js';
 import { registrarServiceWorker } from './core/instalar.js';
 import { vistaTerminos, vistaPrivacidad, vistaCookies, avisoAlmacenamiento } from './ui/legal.js';
-import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia, usuarioActual } from './core/nube.js';
+import { iniciarNube, alCambiarUsuario, rutaDeVuelta, unirPresencia, contarVisita, usuarioActual } from './core/nube.js';
 import { vistaAdmin } from './ui/admin.js';
 import { vistaComunidad } from './ui/comunidad.js';
 import { sincronizar } from './core/almacen.js';
@@ -56,7 +56,7 @@ ruta('/comunidad/:autor/:id', vistaComunidadActividad);
 
 // Sin top-level await (el objetivo de compilación de Vite no lo admite).
 (async () => {
-  try { await iniciarNube(); unirPresencia(); } catch (e) { console.warn('Nube no disponible:', e); }
+  try { await iniciarNube(); unirPresencia(); contarVisita(); } catch (e) { console.warn('Nube no disponible:', e); }
   if (usuarioActual() && !aplicarAparienciaDeCuenta() && yaEligioApariencia()) marcarAparienciaElegida(); // sube a la cuenta lo elegido antes de entrar
   alCambiarUsuario((u, evento) => {
     if (u) { sincronizar(); if (!aplicarAparienciaDeCuenta() && yaEligioApariencia()) marcarAparienciaElegida(); }

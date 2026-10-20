@@ -90,6 +90,21 @@ export async function esAdmin() {
   admin = { id: usuario.id, si: data === true };
   return admin.si;
 }
+// Cuenta anónima de visitas: un navegador suma 1 por día, sin guardar nada de la persona.
+export async function contarVisita() {
+  if (!supa) return;
+  const hoy = new Date().toISOString().slice(0, 10);
+  try {
+    if (localStorage.getItem('aj:visita') === hoy) return;
+    const { error } = await supa.rpc('registrar_visita');
+    if (!error) localStorage.setItem('aj:visita', hoy);
+  } catch { /* sin almacenamiento o sin red: no se cuenta */ }
+}
+export async function visitasAdmin() {
+  const { data, error } = await supa.rpc('admin_visitas');
+  if (error) throw error;
+  return data;
+}
 export async function resumenAdmin() {
   const { data, error } = await supa.rpc('admin_resumen');
   if (error) throw error;

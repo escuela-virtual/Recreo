@@ -4,7 +4,7 @@ import { el } from '../core/util.js';
 import { pagina } from './layout.js';
 import { ir } from '../core/router.js';
 import { plantillaPorId } from '../plantillas.js';
-import { usuarioActual, esAdmin, resumenAdmin, conectadosAhora, alCambiarPresencia, listarReportes, borrarReporte, quitarDeComunidad } from '../core/nube.js';
+import { usuarioActual, esAdmin, resumenAdmin, conectadosAhora, alCambiarPresencia, visitasAdmin, listarReportes, borrarReporte, quitarDeComunidad } from '../core/nube.js';
 import { aviso } from '../core/util.js';
 
 const fecha = (t) => (t ? new Date(t).toLocaleString('es', { dateStyle: 'medium', timeStyle: 'short' }) : '—');
@@ -57,7 +57,8 @@ export async function vistaAdmin(raiz) {
   main.append(el('p', { class: 'sub', text: 'Cargando…' }));
   if (!(await esAdmin())) { main.replaceChildren(el('div', { class: 'tarjeta' }, [el('h2', { text: 'Sin acceso' }), el('p', { class: 'sub', text: 'Esta sección es solo para administradores.' })])); return; }
 
-  let r;
+  let r, visitas = [];
+  try { visitas = await visitasAdmin(); } catch { /* si falla, solo se omite la gráfica */ }
   try { r = await resumenAdmin(); } catch (e) { main.replaceChildren(el('div', { class: 'tarjeta' }, [el('p', { text: 'No se pudo cargar: ' + (e.message || e) })])); return; }
 
   const nombrePlantilla = (id) => { const p = id && plantillaPorId(id); return p ? p.nombre : id || 'Sin plantilla'; };
@@ -116,6 +117,7 @@ export async function vistaAdmin(raiz) {
     conectados,
     reportes,
     el('div', { class: 'adm-rejilla' }, [
+      ...(visitas.length ? [barras(visitas, 'Visitas por día, con o sin cuenta (30 días)')] : []),
       barras(r.registros_dia, 'Cuentas nuevas por día (30 días)'),
       barras(r.accesos_dia, 'Usuarios que iniciaron sesión por día (30 días)'),
       ranking(r.plantillas, 'Plantillas más usadas', nombrePlantilla),

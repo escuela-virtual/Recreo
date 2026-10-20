@@ -277,3 +277,23 @@ revoke execute on function public.valorar(uuid, text, int), public.destacar(uuid
 -- b) Crear la cuenta de administrador: registrarse en la app con el correo del administrador y luego ejecutar:
 --      insert into public.admins (user_id) select id from auth.users where email = 'CORREO_DEL_ADMINISTRADOR';
 -- c) Authentication > URL Configuration: Site URL y Redirect URLs de la app; Providers: activar Google.
+
+-- Visitas diarias (anónimas, solo un contador por día)
+create table public.visitas (dia date primary key, n int not null default 0);
+alter table public.visitas enable row level security;
+create function public.registrar_visita() returns void
+language sql security definer set search_path = '' as $$
+  insert into public.visitas (dia, n) values (current_date, 1)
+  on conflict (dia) do update set n = public.visitas.n + 1;
+$$;
+create function public.admin_visitas() returns jsonb
+language plpgsql stable security definer set search_path = '' as $$
+begin
+  if not public.es_admin() then raise exception 'No autorizado' using errcode = '42501'; end if;
+  return coalesce((select jsonb_agg(jsonb_build_object('dia', d::date, 'n', coalesce((select v.n from public.visitas v where v.dia = d::date), 0)) order by d)
+    from generate_series(current_date - 29, current_date, interval '1 day') d), '[]'::jsonb);
+end $$;
+revoke execute on function public.registrar_visita() from public;
+revoke execute on function public.admin_visitas() from public, anon;
+grant execute on function public.registrar_visita() to anon, authenticated;
+grant execute on function public.admin_visitas() to authenticated;
