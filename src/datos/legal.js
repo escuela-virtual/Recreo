@@ -4,7 +4,7 @@
 // Son un texto base y deben ser revisados por quien responda legalmente por el servicio.
 export const ACTUALIZADO = '19 de octubre de 2026';
 export const RESPONSABLE = 'el equipo de Escuela Virtual del Área de Educación del Comité de Cafeteros';
-export const CONTACTO = ''; // correo de contacto para solicitudes sobre datos personales; si se deja vacío, el texto remite al perfil
+export const CONTACTO = 'edurural.osorio.alejandro@gmail.com'; // correo de contacto para solicitudes sobre datos personales
 
 const contacto = CONTACTO ? ` o escribiendo a ${CONTACTO}` : '';
 
@@ -26,7 +26,7 @@ export const DOCS = {
       { h: '11. Suspensión', p: ['Podemos suspender o eliminar cuentas y contenidos que incumplan estos términos o que pongan en riesgo a otras personas o al servicio.'] },
       { h: '12. Cambios', p: ['Podemos actualizar estos términos. Publicaremos la nueva versión en esta página con su fecha. Si sigues usando Recreatic después, entendemos que la aceptas.'] },
       { h: '13. Ley aplicable', p: ['Estos términos se rigen por las leyes de la República de Colombia.'] },
-      { h: '14. Contacto', p: [`Si tienes preguntas sobre estos términos, comunícate con ${RESPONSABLE}.`] }
+      { h: '14. Contacto', p: [`Si tienes preguntas sobre estos términos, comunícate con ${RESPONSABLE}${contacto}.`] }
     ]
   },
 
@@ -34,7 +34,7 @@ export const DOCS = {
     titulo: 'Política de privacidad y tratamiento de datos personales',
     intro: 'Esta política explica qué datos recoge Recreatic, para qué los usa y cómo puedes ejercer tus derechos, de acuerdo con la Ley 1581 de 2012 y el Decreto 1377 de 2013 de Colombia.',
     secciones: [
-      { h: '1. Responsable del tratamiento', p: [`El responsable del tratamiento de los datos es ${RESPONSABLE}.`] },
+      { h: '1. Responsable del tratamiento', p: [`El responsable del tratamiento de los datos es ${RESPONSABLE}.${CONTACTO ? ` Correo de contacto: ${CONTACTO}.` : ''}`] },
       { h: '2. Qué datos tratamos', p: ['Tratamos solo los datos necesarios para que el servicio funcione:'], li: [
         'Cuenta: tu correo electrónico y, si entras con Google, tu nombre y tu foto de perfil. Si usas contraseña, la gestiona nuestro proveedor de autenticación y no podemos verla.',
         'Contenido: las actividades que creas (textos, imágenes y audios), carpetas, listas y tus preferencias de apariencia.',
