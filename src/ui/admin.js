@@ -63,11 +63,12 @@ export async function vistaAdmin(raiz) {
   const nombrePlantilla = (id) => { const p = id && plantillaPorId(id); return p ? p.nombre : id || 'Sin plantilla'; };
   const conectados = el('div');
   const pintarConectados = (lista) => {
-    const reg = lista.filter((c) => c.correo), anon = lista.length - reg.length;
+    // una persona con varias pestañas o dispositivos cuenta una sola vez
+    const reg = [...new Map(lista.filter((c) => c.correo).sort((a, b) => a.desde - b.desde).map((c) => [c.correo, c])).values()], anon = lista.filter((c) => !c.correo).length;
     conectados.replaceChildren(el('div', { class: 'tarjeta' }, [
-      el('h3', { text: `Conectados ahora: ${lista.length}` }),
+      el('h3', { text: `Conectados ahora: ${reg.length + anon}` }),
       el('p', { class: 'sub', text: `${reg.length} con sesión y ${anon} visitantes sin cuenta. Se actualiza solo.` }),
-      ...reg.map((c) => el('div', { class: 'adm-fila' }, [el('span', { class: 'adm-punto' }), el('span', { text: c.correo }), el('small', { class: 'sub', text: 'desde ' + hace(c.desde) })]))]));
+      ...reg.map((c) => el('div', { class: 'adm-conectado' }, [el('span', { class: 'adm-punto' }), el('span', { class: 'adm-correo', text: c.correo }), el('small', { class: 'sub', text: 'desde ' + hace(c.desde) })]))]));
   };
   pintarConectados(conectadosAhora());
   const quitar = alCambiarPresencia((l) => { if (!conectados.isConnected) quitar(); else pintarConectados(l); });
@@ -77,12 +78,12 @@ export async function vistaAdmin(raiz) {
   const pintarTabla = () => {
     const q = filtro.value.trim().toLowerCase();
     cuerpo.replaceChildren(...r.usuarios.filter((u) => !q || `${u.email} ${u.nombre || ''}`.toLowerCase().includes(q)).map((u) => el('tr', {}, [
-      el('td', {}, [el('b', { text: u.nombre || u.email }), el('br'), el('small', { class: 'sub', text: u.nombre ? u.email : '' }), u.admin ? el('span', { class: 'etiqueta', text: 'admin' }) : '']),
-      el('td', { text: u.proveedor === 'google' ? 'Google' : 'Correo' }),
-      el('td', { text: fecha(u.creado) }),
-      el('td', { attrs: { title: fecha(u.ultimo_acceso) }, text: hace(u.ultimo_acceso) }),
-      el('td', { text: u.actividades }),
-      el('td', { text: hace(u.ultima_edicion) })
+      el('td', { class: 'adm-usuario' }, [el('b', { text: u.nombre || u.email }), el('br'), el('small', { class: 'sub', text: u.nombre ? u.email : '' }), u.admin ? el('span', { class: 'etiqueta', text: 'admin' }) : '']),
+      el('td', { attrs: { 'data-etq': 'Acceso' }, text: u.proveedor === 'google' ? 'Google' : 'Correo' }),
+      el('td', { attrs: { 'data-etq': 'Registro' }, text: fecha(u.creado) }),
+      el('td', { attrs: { title: fecha(u.ultimo_acceso), 'data-etq': 'Última conexión' }, text: hace(u.ultimo_acceso) }),
+      el('td', { attrs: { 'data-etq': 'Actividades' }, text: u.actividades }),
+      el('td', { attrs: { 'data-etq': 'Última edición' }, text: hace(u.ultima_edicion) })
     ])));
   };
   filtro.addEventListener('input', pintarTabla); pintarTabla();
