@@ -140,3 +140,12 @@ textarea { resize: vertical; min-height: 44px; }
 .descargas { display: grid; gap: 12px; margin-top: 10px; }
 .descargas .btn { flex-direction: column; align-items: center; gap: 2px; padding: 16px 20px; text-align: center; }
 .descargas .btn small { font-weight: 400; opacity: .8; }
+
+/* Compartir: botón llamativo, enlace y código QR */
+.btn-compartir { background: linear-gradient(135deg, #ff7a18, #ff3d77); border-color: #d6245c; box-shadow: 0 3px 0 #b01a4a, 0 6px 16px rgba(255, 61, 119, .35); font-size: 17px; padding: 12px 26px; }
+.btn-compartir:hover { filter: brightness(1.08); }
+.comp-bloque { display: grid; gap: 14px; justify-items: center; margin: 10px 0; }
+.comp-enlace { display: flex; gap: 8px; width: 100%; flex-wrap: wrap; } .comp-enlace input { flex: 1 1 200px; min-width: 0; }
+.qr { display: grid; justify-items: center; gap: 6px; text-align: center; }
+.qr svg { width: min(220px, 60vw); height: auto; background: #fff; border-radius: 10px; border: 1px solid var(--linea); }
+.qr small { color: var(--gris); }

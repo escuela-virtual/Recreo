@@ -125,7 +125,7 @@ function construir(raiz, act, { modo, consulta = null, origen = null }) {
             el('h1', { text: act.titulo }),
             act.tarea ? null : el('div', { class: 'fila' }, [
               el('button', { class: 'btn btn-claro', text: '✔ Definir tarea', on: { click: () => definirTarea(act) } }),
-              el('button', { class: 'btn btn-claro', text: '🌐 Compartir', on: { click: () => compartir(act) } })
+              el('button', { class: 'btn btn-compartir', text: '🌐 Compartir', on: { click: () => compartir(act) } })
             ])
           ]),
           el('div', { class: 'fila entre' }, [

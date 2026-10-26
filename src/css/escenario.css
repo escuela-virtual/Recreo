@@ -6,6 +6,7 @@
   user-select: none;
 }
 .escenario:fullscreen { aspect-ratio: auto; height: 100vh; }
+.escenario.pc { position: fixed; inset: 0; z-index: 1000; aspect-ratio: auto; height: 100dvh; }
 .esc-juego.borroso { filter: blur(18px); pointer-events: none; }
 .esc-patron { position: absolute; inset: 0; background-image: var(--e-patron, none); pointer-events: none; }
 .esc-barra { position: absolute; top: 0; left: 0; right: 0; height: 2.6em; display: flex; align-items: center; gap: .9em; padding: 0 1em; z-index: 3; font-weight: 800; background: rgba(0,0,0,.12); }
@@ -340,6 +341,10 @@
   .escenario { aspect-ratio: 3 / 4; font-size: calc(var(--e-escala, 1) * clamp(13px, 4.1cqw, 22px)); }
   .esc-juego { padding: .8em .8em 3.8em; }
   .esc-btn { width: 2.6em; height: 2.6em; }
+  /* Portada: título y descripción más chicos y espacio abajo para que no se pisen con los botones */
+  .esc-capa { padding: 1em 1em 3.8em; gap: .5em; overflow: auto; justify-content: safe center; }
+  .esc-inicio-ti { font-size: 1.7em; max-width: 100%; }
+  .esc-inicio-de { font-size: .95em; max-width: 92%; margin-bottom: .6em; }
   /* Sopa: lista de palabras arriba y cuadrícula debajo (en horizontal no cabrían juntas) */
   .sopa { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: .6em; justify-items: center; align-content: center; }
   .sopa-lista { order: -1; display: flex; flex-wrap: wrap; justify-content: center; gap: .1em .9em; font-size: .85em; }

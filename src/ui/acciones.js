@@ -20,6 +20,22 @@ async function copiar(texto) {
   try { await navigator.clipboard.writeText(texto); aviso('Copiado al portapapeles'); }
   catch (_) { aviso('No se pudo copiar automáticamente; selecciónalo y copia con Ctrl+C'); }
 }
+// Código QR del enlace (se carga solo al compartir). Si el enlace es demasiado largo para un QR, avisa en su lugar.
+async function qrDe(texto) {
+  const caja = el('div', { class: 'qr' });
+  try {
+    const { default: qrcode } = await import('qrcode-generator');
+    const q = qrcode(0, 'L'); q.addData(texto); q.make();
+    caja.innerHTML = q.createSvgTag({ scalable: true, margin: 2 });
+    caja.append(el('small', { text: 'Escanéalo con la cámara del celular' }));
+  } catch (_) { caja.append(el('small', { text: 'El enlace es demasiado largo para un QR. Quita las imágenes o usa una tarea con cuenta (enlace corto).' })); }
+  return caja;
+}
+// Enlace + QR + botón de compartir del celular, reutilizado en actividad y tarea.
+function bloqueEnlace(campo, qr) {
+  const compartirNativo = navigator.share ? el('button', { class: 'btn btn-claro', text: '📤 Enviar…', on: { click: () => navigator.share({ title: NOMBRE, url: campo.value }).catch(() => {}) } }) : null;
+  return el('div', { class: 'comp-bloque' }, [el('div', { class: 'comp-enlace' }, [campo, compartirNativo]), qr]);
+}
 const tieneImagenes = (act) => /data:(image|audio)/.test(JSON.stringify(act.contenido));
 
 // Enlace compartible. Si incluye imágenes puede ser muy largo: se ofrece también la versión sin imágenes.
@@ -33,15 +49,19 @@ export async function compartir(act) {
   const campo = el('input', { attrs: { type: 'text', readonly: true }, on: { focus: (e) => e.target.select() } });
   const nota = el('p', { class: 'sub' });
   let conImg = false;
+  const zonaQr = el('div');
   const pintar = async () => {
     const url = await enlaceDe(act, { imagenes: conImg });
     campo.value = url;
-    nota.textContent = 'El enlace lleva la actividad dentro, por eso es largo. Funciona sin iniciar sesión.';
+    zonaQr.replaceChildren(await qrDe(url));
+    nota.textContent = 'Tus estudiantes no necesitan cuenta. El enlace lleva la actividad dentro, por eso es largo.';
     return url;
   };
   const chk = tieneImagenes(act) ? el('label', { class: 'chk' }, [el('input', { attrs: { type: 'checkbox' }, on: { change: (e) => { conImg = e.target.checked; pintar(); } } }), ' Incluir imágenes y audios (el enlace será más largo)']) : null;
-  modal('Compartir actividad', [
-    el('p', { text: 'Cualquiera con este enlace podrá jugar tu actividad y guardar una copia para editarla.' }), campo, chk, nota
+  const modalComp = modal('Compartir con tus estudiantes', [
+    el('p', { text: 'Pásales el enlace o muéstrales el código QR en el salón: lo escanean con la cámara del celular y juegan al instante.' }), bloqueEnlace(campo, zonaQr), chk, nota,
+    hayNube ? el('p', { class: 'sub', html: '<b>¿Quieres un enlace corto y ver quién jugó y cuánto sacó?</b> Usa «Definir tarea».' }) : null,
+    hayNube ? el('button', { class: 'btn btn-claro', text: '✔ Definir tarea (enlace corto + resultados)', on: { click: () => { modalComp.remove(); definirTarea(act); } } }) : null
   ], [
     el('button', { class: 'btn btn-claro', text: 'Descargar', on: { click: () => descargarActividad(act) } }),
     el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(campo.value) } })
@@ -68,7 +88,7 @@ async function definirTareaLocal(act) {
   campo.value = await enlaceDe(act, { imagenes: false, tarea });
   modal('Definir tarea', [
     el('p', { text: 'Envía este enlace a tus alumnos. Al abrirlo escribirán su nombre y jugarán la actividad.' }),
-    campo,
+    bloqueEnlace(campo, await qrDe(campo.value)),
     el('p', { class: 'sub', html: 'Al terminar, cada alumno recibe un <b>código de resultado</b> que te entrega. Pégalo en <a href="#/resultados">Mis resultados</a> para registrarlo.' }),
     hayNube ? el('p', { class: 'sub', html: '<b>¿Quieres recibir los resultados automáticamente?</b> <a href="#/entrar">Inicia sesión</a> y la tarea quedará guardada con sus resultados en tiempo real.' }) : null
   ], [el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(campo.value) } })]);
@@ -90,7 +110,7 @@ export async function definirTarea(act) {
       const enlace = `${urlBase()}#/t/${id}`;
       const campo = el('input', { attrs: { type: 'text', readonly: true }, value: enlace, on: { focus: (e) => e.target.select() } });
       salida.replaceChildren(
-        el('p', { html: '<b>¡Tarea creada!</b> Comparte este enlace con tus alumnos:' }), campo,
+        el('p', { html: '<b>¡Tarea creada!</b> Comparte este enlace con tus alumnos:' }), bloqueEnlace(campo, await qrDe(enlace)),
         el('div', { class: 'fila', style: { marginTop: '10px' } }, [
           el('button', { class: 'btn', text: 'Copiar enlace', on: { click: () => copiar(enlace) } }),
           el('a', { class: 'btn btn-claro', text: 'Ver resultados', attrs: { href: '#/tarea/' + id } })

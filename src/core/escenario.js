@@ -50,7 +50,9 @@ export function montarEscenario(cont, { plantilla, titulo, tipo, datos, opciones
   const pintarSon = () => { btnSon.textContent = sonido.estaSilenciado() ? '🔇' : '🔊'; };
   pintarSon();
   const btnPant = el('button', { class: 'esc-btn', text: '⛶', attrs: { title: 'Pantalla completa' }, on: { click: () => {
-    if (document.fullscreenElement) document.exitFullscreen(); else raiz.requestFullscreen && raiz.requestFullscreen();
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (raiz.requestFullscreen) raiz.requestFullscreen();
+    else raiz.classList.toggle('pc'); // iPhone no permite pantalla completa en elementos: se simula cubriendo la ventana
   } } });
   const btnRei = el('button', { class: 'esc-btn', text: '↻', attrs: { title: 'Reiniciar' }, on: { click: () => reiniciar() } });
   ctl.append(btnRei, btnSon, btnPant);

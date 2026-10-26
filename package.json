@@ -14,7 +14,8 @@
     "@fontsource/nunito": "^5.1.0",
     "@fontsource/opendyslexic": "^5.1.0",
     "@fontsource/patrick-hand": "^5.1.0",
-    "@supabase/supabase-js": "^2.118.0"
+    "@supabase/supabase-js": "^2.118.0",
+    "qrcode-generator": "^2.0.4"
   },
   "devDependencies": {
     "vite": "^6.0.0"
