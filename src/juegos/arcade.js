@@ -30,7 +30,7 @@ const topo = {
     const cont = caja(h, 'topo');
     const preg = el('div', { class: 'e-card topo-q' });
     const campo = el('div', { class: 'topo-campo' });
-    const hoyos = Array.from({ length: 9 }, () => { const b = el('button', { class: 'topo-hoyo' }, [el('div', { class: 'topo-bicho' })]); campo.append(b); return b; });
+    const hoyos = Array.from({ length: matchMedia('(max-width: 700px) and (orientation: portrait)').matches ? 8 : 9 }, () => { const b = el('button', { class: 'topo-hoyo' }, [el('div', { class: 'topo-bicho' })]); campo.append(b); return b; });
     cont.append(preg, campo);
     const dur = () => Math.max(900, 2800 - (h.opciones.velocidad || 5) * 200);
 

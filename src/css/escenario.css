@@ -345,6 +345,12 @@
   .esc-capa { padding: 1em 1em 3.8em; gap: .5em; overflow: auto; justify-content: safe center; }
   .esc-inicio-ti { font-size: 1.7em; max-width: 100%; }
   .esc-inicio-de { font-size: .95em; max-width: 92%; margin-bottom: .6em; }
+  /* Topo: 2 columnas x 4 filas, sin icono, para que las respuestas largas se lean completas */
+  .topo-q { font-size: 1.05em; min-height: 0; padding: .3em .6em; }
+  .topo-campo { grid-template-columns: repeat(2, 1fr); grid-template-rows: repeat(4, 1fr); gap: .4em; }
+  .topo-ico { display: none; }
+  .topo-bicho { left: 2%; right: 2%; height: 92%; justify-content: center; transform: translateY(130%); }
+  .topo-txt { font-size: .8em; line-height: 1.15; padding: .25em .4em; text-align: center; }
   /* Sopa: lista de palabras arriba y cuadrícula debajo (en horizontal no cabrían juntas) */
   .sopa { grid-template-columns: minmax(0, 1fr); grid-template-rows: auto minmax(0, 1fr); gap: .6em; justify-items: center; align-content: center; }
   .sopa-lista { order: -1; display: flex; flex-wrap: wrap; justify-content: center; gap: .1em .9em; font-size: .85em; }
